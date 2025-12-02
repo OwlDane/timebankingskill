@@ -6,12 +6,12 @@ export default function HowItWorksPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="Time Banking Logo" className="h-8 w-8 rounded-md" />
-              <span className="text-xl font-bold">Time Banking</span>
+              <img src="/wibi.png" alt="Wibi Logo" className="h-8 w-8 rounded-md" />
+              <span className="text-xl font-bold">Wibi</span>
             </Link>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -31,7 +31,7 @@ export default function HowItWorksPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-background to-muted">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-linear-to-b from-background to-muted">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center space-y-4">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
@@ -394,8 +394,8 @@ export default function HowItWorksPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Time Banking Logo" className="h-6 w-6 rounded-md" />
-                <span className="text-lg font-bold">Time Banking</span>
+                <img src="/wibi.png" alt="Wibi Logo" className="h-6 w-6 rounded-md" />
+                <span className="text-lg font-bold">Wibi</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Platform peer-to-peer skill exchange untuk pelajar menggunakan sistem Time Banking.

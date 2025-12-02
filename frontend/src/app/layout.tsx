@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Time Banking Skill Platform",
+  title: "Wibi - Time Banking Skill Platform",
   description: "Platform peer-to-peer skill exchange untuk pelajar menggunakan sistem Time Banking",
+  icons: {
+    icon: '/wibi.png',
+    shortcut: '/wibi.png',
+    apple: '/wibi.png',
+  },
 };
 
 export default function RootLayout({

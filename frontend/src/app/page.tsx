@@ -8,17 +8,17 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header/Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Image 
-              src="/logo.svg" 
-              alt="Time Banking Logo" 
+              src="/wibi.png" 
+              alt="Wibi Logo" 
               width={32} 
               height={32} 
               className="rounded-md"
             />
-            <span className="text-xl font-bold">Time Banking</span>
+            <span className="text-xl font-bold">Wibi</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/marketplace" className="text-sm font-medium hover:underline underline-offset-4">Marketplace</Link>
@@ -37,7 +37,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-background to-muted">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-linear-to-b from-background to-muted">
         <div className="container px-4 md:px-6 space-y-10 xl:space-y-16">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
             <div className="space-y-5">
@@ -60,7 +60,7 @@ export default function Home() {
             <div className="flex items-center justify-center">
               <div className="relative w-full max-w-[500px] aspect-square">
                 <Image 
-                  src="/hero-image.svg" 
+                  src="/undraw_sharing-knowledge_2jx3.svg" 
                   alt="Students exchanging skills" 
                   fill 
                   className="object-contain"
@@ -228,8 +228,8 @@ export default function Home() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Image 
-                  src="/logo.svg" 
-                  alt="Time Banking Logo" 
+                  src="/wibi.png" 
+                  alt="Wibi Logo" 
                   width={24} 
                   height={24} 
                   className="rounded-md"

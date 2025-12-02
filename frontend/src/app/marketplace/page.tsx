@@ -79,12 +79,12 @@ export default function MarketplacePage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
                 <div className="container flex h-16 items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Link href="/" className="flex items-center gap-2">
-                            <img src="/logo.svg" alt="Time Banking Logo" className="h-8 w-8 rounded-md" />
-                            <span className="text-xl font-bold">Time Banking</span>
+                            <img src="/wibi.png" alt="Wibi Logo" className="h-8 w-8 rounded-md" />
+                            <span className="text-xl font-bold">Wibi</span>
                         </Link>
                     </div>
                     <nav className="hidden md:flex items-center gap-6">
