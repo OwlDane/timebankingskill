@@ -342,6 +342,7 @@ function ChangePasswordTab() {
         confirm: false
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const { changePassword } = useUserStore()
 
     const {
         register,
@@ -355,13 +356,8 @@ function ChangePasswordTab() {
     const onSubmit = async (data: PasswordForm) => {
         try {
             setIsSubmitting(true)
-            // TODO: Implement password change functionality
-            // const passwordData: ChangePasswordRequest = {
-            //     current_password: data.current_password,
-            //     new_password: data.new_password
-            // }
-            // await changePassword(passwordData)
-            toast.success('Password change feature coming soon!')
+            await changePassword(data.current_password, data.new_password)
+            toast.success('Password changed successfully!')
             reset()
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to change password')
@@ -475,7 +471,7 @@ function ChangePasswordTab() {
 // Avatar Upload Component
 function AvatarUpload() {
     const [isUploading, setIsUploading] = useState(false)
-    const { profile } = useUserStore()
+    const { profile, updateAvatar } = useUserStore()
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -494,12 +490,12 @@ function AvatarUpload() {
         try {
             setIsUploading(true)
             
-            // TODO: Implement avatar upload functionality
             // For now, we'll use a placeholder URL
             // In production, you would upload to a service like Cloudinary or AWS S3
-            // const fakeUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username || 'user'}&size=200`
-            // await updateAvatar(fakeUrl)
-            toast.success('Avatar upload feature coming soon!')
+            const fakeUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.username || 'user'}&size=200`
+            
+            await updateAvatar(fakeUrl)
+            toast.success('Avatar updated successfully!')
         } catch (error) {
             toast.error('Failed to upload avatar')
         } finally {

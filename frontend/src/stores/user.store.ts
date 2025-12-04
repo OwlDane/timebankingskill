@@ -15,6 +15,8 @@ interface UserState {
     fetchStats: () => Promise<void>;
     fetchTransactions: (limit?: number, offset?: number) => Promise<void>;
     updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+    changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+    updateAvatar: (avatarUrl: string) => Promise<void>;
     clearError: () => void;
     reset: () => void;
 }
@@ -75,6 +77,31 @@ export const useUserStore = create<UserState>((set) => ({
             set({ profile, isLoading: false });
         } catch (error: any) {
             set({ isLoading: false, error: error.message || 'Failed to update profile' });
+            throw error;
+        }
+    },
+
+    changePassword: async (oldPassword, newPassword) => {
+        set({ isLoading: true, error: null });
+        try {
+            await userService.changePassword({
+                old_password: oldPassword,
+                new_password: newPassword,
+            });
+            set({ isLoading: false });
+        } catch (error: any) {
+            set({ isLoading: false, error: error.message || 'Failed to change password' });
+            throw error;
+        }
+    },
+
+    updateAvatar: async (avatarUrl) => {
+        set({ isLoading: true, error: null });
+        try {
+            const profile = await userService.updateAvatar(avatarUrl);
+            set({ profile, isLoading: false });
+        } catch (error: any) {
+            set({ isLoading: false, error: error.message || 'Failed to update avatar' });
             throw error;
         }
     },
