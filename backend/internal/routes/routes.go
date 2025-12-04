@@ -14,6 +14,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	userHandler := InitializeUserHandler(db)
 	transactionHandler := InitializeTransactionHandler(db)
 	sessionHandler := InitializeSessionHandler(db)
+	reviewHandler := InitializeReviewHandler(db)
 
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -48,6 +49,9 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 		{
 			publicUsers.GET("/:id/profile", userHandler.GetPublicProfile)          // GET /api/v1/users/1/profile
 			publicUsers.GET("/@:username", userHandler.GetPublicProfileByUsername) // GET /api/v1/users/@johndoe
+			publicUsers.GET("/:userId/reviews", reviewHandler.GetUserReviews)      // GET /api/v1/users/1/reviews
+			publicUsers.GET("/:userId/reviews/:type", reviewHandler.GetUserReviewsByType) // GET /api/v1/users/1/reviews/teacher
+			publicUsers.GET("/:userId/rating-summary", reviewHandler.GetUserRatingSummary) // GET /api/v1/users/1/rating-summary
 		}
 
 		// Protected routes (require authentication)
@@ -102,8 +106,14 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 				sessions.POST("/:id/cancel", sessionHandler.CancelSession)       // POST /api/v1/sessions/:id/cancel
 			}
 
-			// Future routes
-			// Reviews routes will be added here
+			// Reviews routes
+			reviews := protected.Group("/reviews")
+			{
+				reviews.POST("", reviewHandler.CreateReview)              // POST /api/v1/reviews - Create a review
+				reviews.GET("/:id", reviewHandler.GetReview)              // GET /api/v1/reviews/:id - Get a review
+				reviews.PUT("/:id", reviewHandler.UpdateReview)           // PUT /api/v1/reviews/:id - Update a review
+				reviews.DELETE("/:id", reviewHandler.DeleteReview)        // DELETE /api/v1/reviews/:id - Delete a review
+			}
 		}
 	}
 }

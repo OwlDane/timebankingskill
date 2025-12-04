@@ -47,3 +47,12 @@ func InitializeSessionHandler(db *gorm.DB) *handler.SessionHandler {
 	sessionService := service.NewSessionService(sessionRepo, userRepo, skillRepo, transactionRepo)
 	return handler.NewSessionHandler(sessionService)
 }
+
+// InitializeReviewHandler initializes review handler with dependencies
+func InitializeReviewHandler(db *gorm.DB) *handler.ReviewHandler {
+	reviewRepo := repository.NewReviewRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	reviewService := service.NewReviewService(reviewRepo, sessionRepo, userRepo)
+	return handler.NewReviewHandler(reviewService)
+}
