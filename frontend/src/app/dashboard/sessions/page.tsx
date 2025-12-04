@@ -230,7 +230,7 @@ function SessionsContent() {
         <div className="min-h-screen bg-background">
             <Header />
 
-            <main className="container py-8">
+            <main className="container mx-auto px-4 py-8 max-w-7xl">
                 <div className="flex flex-col space-y-8">
                     {/* Page Header */}
                     <div className="flex justify-between items-center">

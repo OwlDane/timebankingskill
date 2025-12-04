@@ -125,7 +125,7 @@ function BookSessionContent() {
         <div className="min-h-screen bg-background">
             <Header />
 
-            <main className="container py-8 max-w-2xl">
+            <main className="container mx-auto px-4 py-8 max-w-2xl">
                 <div className="flex flex-col space-y-6">
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

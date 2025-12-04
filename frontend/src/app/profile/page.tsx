@@ -37,7 +37,7 @@ function ProfileContent() {
       <Header />
 
       {/* Main Content */}
-      <main className="container py-8">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex flex-col space-y-8">
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row gap-6">

@@ -59,7 +59,7 @@ function DashboardContent() {
             <Header />
 
             {/* Main Content */}
-            <main className="container py-8">
+            <main className="container mx-auto px-4 py-8 max-w-7xl">
                 <div className="flex flex-col space-y-8">
                     {/* Welcome Section */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
