@@ -30,46 +30,50 @@ func NewReviewService(
 }
 
 // CreateReview creates a new review for a session
+// Only session participants can review, and only after session is completed
 func (s *ReviewService) CreateReview(reviewerID uint, req *dto.CreateReviewRequest) (*dto.ReviewResponse, error) {
-	// Validate request
+	// VALIDATION: Ensure rating is within valid range (1-5 stars)
 	if req.Rating < 1 || req.Rating > 5 {
 		return nil, errors.New("rating must be between 1 and 5")
 	}
 
-	// Get session
+	// FETCH SESSION: Get session details to verify it exists and is completed
 	session, err := s.sessionRepo.GetByID(req.SessionID)
 	if err != nil {
 		return nil, errors.New("session not found")
 	}
 
-	// Verify session is completed
+	// STATUS CHECK: Only allow reviews for completed sessions
+	// This ensures both parties have actually completed the session
 	if session.Status != models.StatusCompleted {
 		return nil, errors.New("can only review completed sessions")
 	}
 
-	// Determine reviewer role and reviewee
+	// ROLE DETERMINATION: Identify reviewer role and who is being reviewed
+	// Teacher reviewing student vs Student reviewing teacher
 	var reviewType models.ReviewType
 	var revieweeID uint
 
 	if session.TeacherID == reviewerID {
-		// Teacher reviewing student
+		// Teacher is reviewing the student (learner)
 		reviewType = models.ReviewTypeStudent
 		revieweeID = session.StudentID
 	} else if session.StudentID == reviewerID {
-		// Student reviewing teacher
+		// Student is reviewing the teacher (tutor)
 		reviewType = models.ReviewTypeTeacher
 		revieweeID = session.TeacherID
 	} else {
+		// Neither teacher nor student - unauthorized
 		return nil, errors.New("only session participants can review")
 	}
 
-	// Check if review already exists
+	// DUPLICATE CHECK: Prevent multiple reviews from same reviewer for same session
 	existingReview, _ := s.reviewRepo.GetBySessionAndReviewer(req.SessionID, reviewerID)
 	if existingReview != nil && existingReview.ID > 0 {
 		return nil, errors.New("you have already reviewed this session")
 	}
 
-	// Create review
+	// CREATE REVIEW: Build review object with all provided data
 	review := &models.Review{
 		SessionID:           req.SessionID,
 		ReviewerID:          reviewerID,
@@ -83,11 +87,12 @@ func (s *ReviewService) CreateReview(reviewerID uint, req *dto.CreateReviewReque
 		KnowledgeRating:     req.KnowledgeRating,
 	}
 
+	// PERSIST: Save review to database
 	if err := s.reviewRepo.Create(review); err != nil {
 		return nil, fmt.Errorf("failed to create review: %w", err)
 	}
 
-	// Reload review with relationships
+	// RELOAD: Fetch review with relationships for response
 	review, err = s.reviewRepo.GetByID(review.ID)
 	if err != nil {
 		return nil, err
@@ -151,42 +156,48 @@ func (s *ReviewService) GetReviewsForUserByType(userID uint, reviewType string, 
 	return dto.MapReviewsToResponse(reviews), total, nil
 }
 
-// GetUserRatingSummary gets rating summary for a user
+// GetUserRatingSummary gets comprehensive rating summary for a user
+// Calculates overall rating and breaks down by role (as teacher vs as student)
 func (s *ReviewService) GetUserRatingSummary(userID uint) (map[string]interface{}, error) {
-	// Get average rating
+	// FETCH OVERALL RATING: Get average rating across all reviews
 	avgRating, err := s.reviewRepo.GetAverageRatingForUser(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get average rating: %w", err)
 	}
 
-	// Get rating count
+	// FETCH TOTAL COUNT: Get total number of reviews received
 	count, err := s.reviewRepo.GetRatingCountForUser(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rating count: %w", err)
 	}
 
-	// Get reviews by type
+	// FETCH TEACHER REVIEWS: Get all reviews where user was teaching
+	// These are reviews from students about the user's teaching ability
 	teacherReviews, _, err := s.reviewRepo.GetReviewsForUserByType(userID, models.ReviewTypeTeacher, 1000, 0)
 	if err != nil {
 		return nil, err
 	}
 
+	// FETCH STUDENT REVIEWS: Get all reviews where user was learning
+	// These are reviews from teachers about the user's learning behavior
 	studentReviews, _, err := s.reviewRepo.GetReviewsForUserByType(userID, models.ReviewTypeStudent, 1000, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	// Calculate average for each type
+	// CALCULATE ROLE-BASED AVERAGES: Compute separate ratings for each role
+	// This allows users to see how they're perceived as a teacher vs learner
 	avgTeacherRating := calculateAverageRating(teacherReviews)
 	avgStudentRating := calculateAverageRating(studentReviews)
 
+	// BUILD RESPONSE: Return comprehensive rating breakdown
 	return map[string]interface{}{
-		"average_rating":          avgRating,
-		"total_reviews":           count,
-		"average_teacher_rating":  avgTeacherRating,
-		"teacher_review_count":    len(teacherReviews),
-		"average_student_rating":  avgStudentRating,
-		"student_review_count":    len(studentReviews),
+		"average_rating":          avgRating,          // Overall average rating
+		"total_reviews":           count,              // Total reviews received
+		"average_teacher_rating":  avgTeacherRating,   // Average rating as teacher
+		"teacher_review_count":    len(teacherReviews), // Number of teaching reviews
+		"average_student_rating":  avgStudentRating,   // Average rating as student
+		"student_review_count":    len(studentReviews), // Number of student reviews
 	}, nil
 }
 

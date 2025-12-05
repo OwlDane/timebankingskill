@@ -133,30 +133,46 @@ func (h *BadgeHandler) CheckAndAwardBadges(c *gin.Context) {
 
 // PinBadge pins/unpins a badge for the user
 // POST /api/v1/user/badges/:id/pin
+// Request body: { "is_pinned": true/false }
 func (h *BadgeHandler) PinBadge(c *gin.Context) {
-	_, ok := getUserID(c)
+	userID, ok := getUserID(c)
 	if !ok {
 		utils.SendError(c, http.StatusUnauthorized, "Unauthorized", nil)
 		return
 	}
 
+	// Parse badge ID from URL parameter
 	badgeIDStr := c.Param("id")
-	_, err := strconv.ParseUint(badgeIDStr, 10, 32)
+	badgeID, err := strconv.ParseUint(badgeIDStr, 10, 32)
 	if err != nil {
 		utils.SendError(c, http.StatusBadRequest, "Invalid badge ID", err)
 		return
 	}
 
+	// Parse request body
 	var req struct {
-		IsPinned bool `json:"is_pinned"`
+		IsPinned bool `json:"is_pinned" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.SendError(c, http.StatusBadRequest, "Invalid request data", err)
+		utils.SendError(c, http.StatusBadRequest, "Invalid request data - is_pinned field required", err)
 		return
 	}
 
-	// TODO: Implement pin badge logic in service
-	utils.SendSuccess(c, http.StatusOK, "Badge pin status updated", nil)
+	// Call service to pin/unpin badge
+	if err := h.badgeService.PinBadge(userID, uint(badgeID), req.IsPinned); err != nil {
+		utils.SendError(c, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	// Return success response
+	statusMsg := "Badge pinned successfully"
+	if !req.IsPinned {
+		statusMsg = "Badge unpinned successfully"
+	}
+	utils.SendSuccess(c, http.StatusOK, statusMsg, gin.H{
+		"badge_id": badgeID,
+		"is_pinned": req.IsPinned,
+	})
 }
 
 // GetBadgeLeaderboard retrieves top users by badge count

@@ -24,9 +24,11 @@ func InitializeSkillHandler(db *gorm.DB) *handler.SkillHandler {
 }
 
 // InitializeUserHandler initializes user handler with dependencies
+// Includes session repository for calculating teaching/learning hours
 func InitializeUserHandler(db *gorm.DB) *handler.UserHandler {
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	sessionRepo := repository.NewSessionRepository(db)
+	userService := service.NewUserServiceWithSession(userRepo, sessionRepo)
 	return handler.NewUserHandler(userService)
 }
 

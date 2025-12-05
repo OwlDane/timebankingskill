@@ -11,12 +11,22 @@ import (
 )
 
 type UserService struct {
-	userRepo repository.UserRepositoryInterface
+	userRepo    repository.UserRepositoryInterface
+	sessionRepo *repository.SessionRepository
 }
 
 func NewUserService(userRepo repository.UserRepositoryInterface) *UserService {
 	return &UserService{
 		userRepo: userRepo,
+	}
+}
+
+// NewUserServiceWithSession creates a new user service with session repository
+// Used for calculating teaching/learning hours from completed sessions
+func NewUserServiceWithSession(userRepo repository.UserRepositoryInterface, sessionRepo *repository.SessionRepository) *UserService {
+	return &UserService{
+		userRepo:    userRepo,
+		sessionRepo: sessionRepo,
 	}
 }
 
@@ -105,27 +115,71 @@ func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword strin
 	return s.userRepo.Update(user)
 }
 
-// GetUserStats retrieves user statistics
+// GetUserStats retrieves user statistics including calculated teaching/learning hours
 func (s *UserService) GetUserStats(userID uint) (*UserStats, error) {
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Calculate stats
+	// Calculate teaching and learning hours from completed sessions
+	teachingHours := s.calculateTeachingHours(userID)
+	learningHours := s.calculateLearningHours(userID)
+
+	// Build stats response
 	stats := &UserStats{
-		CreditBalance:         int(user.CreditBalance),
-		TotalCreditsEarned:   int(user.TotalEarned),
-		TotalCreditsSpent:    int(user.TotalSpent),
+		CreditBalance:          int(user.CreditBalance),
+		TotalCreditsEarned:     int(user.TotalEarned),
+		TotalCreditsSpent:      int(user.TotalSpent),
 		TotalSessionsAsTeacher: user.TotalSessionsAsTeacher,
 		TotalSessionsAsStudent: user.TotalSessionsAsStudent,
 		AverageRatingAsTeacher: user.AverageRatingAsTeacher,
 		AverageRatingAsStudent: user.AverageRatingAsStudent,
-		TotalTeachingHours:   0, // TODO: Calculate from sessions
-		TotalLearningHours:   0, // TODO: Calculate from sessions
+		TotalTeachingHours:     teachingHours,
+		TotalLearningHours:     learningHours,
 	}
 
 	return stats, nil
+}
+
+// calculateTeachingHours calculates total hours user has taught
+// Sums duration of all completed sessions where user is the teacher
+// Returns 0 if sessionRepo is not initialized (for backward compatibility)
+func (s *UserService) calculateTeachingHours(userID uint) int {
+	// Check if session repository is available
+	if s.sessionRepo == nil {
+		return 0 // Return 0 if not initialized
+	}
+
+	// Query database for total teaching hours
+	totalHours, err := s.sessionRepo.GetTotalTeachingHours(userID)
+	if err != nil {
+		// Log error but don't fail - return 0 as fallback
+		return 0
+	}
+
+	// Convert float64 to int (truncate decimal places)
+	return int(totalHours)
+}
+
+// calculateLearningHours calculates total hours user has learned
+// Sums duration of all completed sessions where user is the student
+// Returns 0 if sessionRepo is not initialized (for backward compatibility)
+func (s *UserService) calculateLearningHours(userID uint) int {
+	// Check if session repository is available
+	if s.sessionRepo == nil {
+		return 0 // Return 0 if not initialized
+	}
+
+	// Query database for total learning hours
+	totalHours, err := s.sessionRepo.GetTotalLearningHours(userID)
+	if err != nil {
+		// Log error but don't fail - return 0 as fallback
+		return 0
+	}
+
+	// Convert float64 to int (truncate decimal places)
+	return int(totalHours)
 }
 
 // UpdateAvatar updates user avatar
@@ -148,26 +202,30 @@ func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
 }
 
 // GetPublicProfile retrieves public user profile (limited fields)
+// Shows only non-sensitive information that can be displayed publicly
 func (s *UserService) GetPublicProfile(userID uint) (*PublicProfile, error) {
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Calculate teaching hours from completed sessions
+	teachingHours := s.calculateTeachingHours(userID)
+
 	profile := &PublicProfile{
-		ID:                    user.ID,
-		FullName:             user.FullName,
-		Username:             user.Username,
-		School:               user.School,
-		Grade:                user.Grade,
-		Major:                user.Major,
-		Bio:                  user.Bio,
-		Avatar:               user.Avatar,
-		Location:             user.Location,
+		ID:                     user.ID,
+		FullName:              user.FullName,
+		Username:              user.Username,
+		School:                user.School,
+		Grade:                 user.Grade,
+		Major:                 user.Major,
+		Bio:                   user.Bio,
+		Avatar:                user.Avatar,
+		Location:              user.Location,
 		TotalSessionsAsTeacher: user.TotalSessionsAsTeacher,
 		AverageRatingAsTeacher: user.AverageRatingAsTeacher,
-		TotalTeachingHours:   0, // TODO: Calculate from sessions
-		CreatedAt:            user.CreatedAt,
+		TotalTeachingHours:    teachingHours,
+		CreatedAt:             user.CreatedAt,
 	}
 
 	return profile, nil

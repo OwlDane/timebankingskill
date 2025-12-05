@@ -109,56 +109,65 @@ func (s *SessionService) BookSession(studentID uint, req *dto.CreateSessionReque
 }
 
 // ApproveSession allows teacher to approve a pending session
+// This implements the credit escrow system:
+// 1. Credits are held (deducted from available balance but not transferred)
+// 2. Credits remain held until session is completed
+// 3. If session is cancelled, credits are refunded to student
+// 4. If session is completed, credits are transferred to teacher
 func (s *SessionService) ApproveSession(teacherID, sessionID uint, req *dto.ApproveSessionRequest) (*dto.SessionResponse, error) {
+	// Fetch session from database
 	session, err := s.sessionRepo.GetByID(sessionID)
 	if err != nil {
 		return nil, errors.New("session not found")
 	}
 
-	// Verify teacher owns this session
+	// Authorization check: verify teacher owns this session
 	if session.TeacherID != teacherID {
 		return nil, errors.New("you are not authorized to approve this session")
 	}
 
-	// Verify session is pending
+	// Status check: only pending sessions can be approved
 	if session.Status != models.StatusPending {
 		return nil, errors.New("session is not pending approval")
 	}
 
-	// Get student to hold credits
+	// Fetch student to verify credit availability
 	student, err := s.userRepo.FindByID(session.StudentID)
 	if err != nil {
 		return nil, errors.New("student not found")
 	}
 
-	// Check if student still has enough credits
+	// Credit validation: ensure student still has enough credits
+	// (Credits may have been spent on other sessions since booking)
 	if student.CreditBalance < session.CreditAmount {
 		return nil, errors.New("student has insufficient credits")
 	}
 
-	// Hold credits from student
+	// CREDIT HOLD PHASE: Deduct credits from student's available balance
+	// These credits are now in escrow and cannot be used for other sessions
 	student.CreditBalance -= session.CreditAmount
 	if err := s.userRepo.Update(student); err != nil {
 		return nil, errors.New("failed to hold credits")
 	}
 
-	// Create hold transaction
+	// Record the hold transaction for audit trail
+	// This tracks the credit movement for transparency
 	holdTransaction := &models.Transaction{
 		UserID:        session.StudentID,
 		Type:          models.TransactionHold,
 		Amount:        -session.CreditAmount,
-		BalanceBefore: student.CreditBalance + session.CreditAmount,
-		BalanceAfter:  student.CreditBalance,
+		BalanceBefore: student.CreditBalance + session.CreditAmount, // Balance before hold
+		BalanceAfter:  student.CreditBalance,                         // Balance after hold
 		Description:   "Credit hold for session: " + session.Title,
 		SessionID:     &session.ID,
 	}
 	_ = s.transactionRepo.Create(holdTransaction)
 
-	// Update session
+	// Update session status to approved and mark credits as held
 	session.Status = models.StatusApproved
 	session.CreditHeld = true
 
-	// Allow teacher to reschedule
+	// Allow teacher to provide additional details (optional)
 	if req.ScheduledAt != nil {
 		session.ScheduledAt = req.ScheduledAt
 	}
@@ -172,6 +181,7 @@ func (s *SessionService) ApproveSession(teacherID, sessionID uint, req *dto.Appr
 		session.Notes = req.Notes
 	}
 
+	// Persist session changes
 	if err := s.sessionRepo.Update(session); err != nil {
 		return nil, errors.New("failed to approve session")
 	}
@@ -290,24 +300,30 @@ func (s *SessionService) ConfirmCompletion(userID, sessionID uint, req *dto.Comp
 }
 
 // completeSession finalizes the session and transfers credits
+// This is called when both teacher and student confirm session completion
+// CREDIT RELEASE PHASE: Transfers held credits from escrow to teacher
 func (s *SessionService) completeSession(session *models.Session) error {
+	// Mark session as completed with current timestamp
 	now := time.Now()
 	session.Status = models.StatusCompleted
 	session.CompletedAt = &now
 	session.CreditReleased = true
 
-	// Transfer credits to teacher
+	// CREDIT TRANSFER: Release held credits to teacher
+	// Fetch teacher from database
 	teacher, err := s.userRepo.FindByID(session.TeacherID)
 	if err != nil {
 		return errors.New("teacher not found")
 	}
 
+	// Add held credits to teacher's balance
 	teacher.CreditBalance += session.CreditAmount
 	if err := s.userRepo.Update(teacher); err != nil {
 		return errors.New("failed to transfer credits")
 	}
 
-	// Create earned transaction for teacher
+	// Record the earned transaction for audit trail
+	// This documents the credit transfer from student to teacher
 	earnedTransaction := &models.Transaction{
 		UserID:        session.TeacherID,
 		Type:          models.TransactionEarned,
@@ -319,13 +335,15 @@ func (s *SessionService) completeSession(session *models.Session) error {
 	}
 	_ = s.transactionRepo.Create(earnedTransaction)
 
-	// Update user skill stats
+	// Update skill statistics
+	// Increment session count for this teaching skill
 	userSkill, _ := s.skillRepo.GetUserSkillByID(session.UserSkillID)
 	if userSkill != nil {
 		userSkill.TotalSessions++
 		_ = s.skillRepo.UpdateUserSkill(userSkill)
 	}
 
+	// Persist all session changes to database
 	return s.sessionRepo.Update(session)
 }
 

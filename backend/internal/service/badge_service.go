@@ -129,44 +129,75 @@ func (s *BadgeService) CheckAndAwardBadges(userID uint) ([]dto.UserBadgeResponse
 	return dto.MapUserBadgesToResponse(awardedBadges), nil
 }
 
+// PinBadge pins or unpins a badge for a user
+// This allows users to showcase their favorite badges on their profile
+func (s *BadgeService) PinBadge(userID, badgeID uint, isPinned bool) error {
+	// Verify user has this badge
+	hasBadge, err := s.badgeRepo.HasUserBadge(userID, badgeID)
+	if err != nil {
+		return fmt.Errorf("failed to verify badge ownership: %w", err)
+	}
+	if !hasBadge {
+		return errors.New("user does not have this badge")
+	}
+
+	// Update pin status in database
+	if err := s.badgeRepo.PinBadge(userID, badgeID, isPinned); err != nil {
+		return fmt.Errorf("failed to update badge pin status: %w", err)
+	}
+
+	return nil
+}
+
 // qualifiesForBadge checks if user meets badge requirements
+// This is a private method that evaluates badge qualification criteria
+// It uses an AND logic: ALL requirements must be met to qualify
+// If a requirement is not specified in the badge, it's skipped
 func (s *BadgeService) qualifiesForBadge(user *models.User, requirements map[string]interface{}) bool {
-	// Check sessions requirement
+	// TOTAL SESSIONS CHECK: Verify combined teaching + learning sessions
+	// Used for badges like "Dedicated Participant" (10+ total sessions)
 	if sessionsReq, ok := requirements["sessions"].(float64); ok {
-		if user.TotalSessionsAsTeacher+user.TotalSessionsAsStudent < int(sessionsReq) {
-			return false
+		totalSessions := user.TotalSessionsAsTeacher + user.TotalSessionsAsStudent
+		if totalSessions < int(sessionsReq) {
+			return false // Doesn't meet minimum total sessions
 		}
 	}
 
-	// Check teaching sessions requirement
+	// TEACHING SESSIONS CHECK: Verify teaching experience
+	// Used for badges like "Dedicated Teacher" (20+ teaching sessions)
 	if teachingReq, ok := requirements["teaching_sessions"].(float64); ok {
 		if user.TotalSessionsAsTeacher < int(teachingReq) {
-			return false
+			return false // Doesn't meet minimum teaching sessions
 		}
 	}
 
-	// Check learning sessions requirement
+	// LEARNING SESSIONS CHECK: Verify learning experience
+	// Used for badges like "Knowledge Seeker" (10+ learning sessions)
 	if learningReq, ok := requirements["learning_sessions"].(float64); ok {
 		if user.TotalSessionsAsStudent < int(learningReq) {
-			return false
+			return false // Doesn't meet minimum learning sessions
 		}
 	}
 
-	// Check rating requirement
+	// RATING CHECK: Verify quality of teaching/learning
+	// Calculates average of teacher and student ratings
+	// Used for badges like "Top Tutor" (4.8+ rating)
 	if ratingReq, ok := requirements["rating"].(float64); ok {
 		avgRating := (user.AverageRatingAsTeacher + user.AverageRatingAsStudent) / 2
 		if avgRating < ratingReq {
-			return false
+			return false // Doesn't meet minimum rating threshold
 		}
 	}
 
-	// Check credits requirement
+	// CREDITS EARNED CHECK: Verify teaching productivity
+	// Used for badges like "Platinum Teacher" (100+ hours taught)
 	if creditsReq, ok := requirements["credits_earned"].(float64); ok {
 		if int(user.TotalEarned) < int(creditsReq) {
-			return false
+			return false // Doesn't meet minimum credits earned
 		}
 	}
 
+	// All requirements met - user qualifies for this badge
 	return true
 }
 
