@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,10 @@ import { Header } from "@/components/layout";
 import { ProtectedRoute } from "@/components/auth";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSkillStore } from "@/stores/skill.store";
+import { useBadgeStore } from "@/stores/badge.store";
+import { useReviewStore } from "@/stores/review.store";
 import type { UserSkill, LearningSkill } from "@/types";
+import { toast } from 'sonner';
 
 function getInitials(name: string) {
   return name
@@ -22,15 +26,75 @@ function getInitials(name: string) {
 }
 
 function ProfileContent() {
+  const router = useRouter();
   const { user } = useAuthStore();
-  const { userSkills, learningSkills, isLoadingUserSkills, isLoadingLearningSkills, fetchUserSkills, fetchLearningSkills } = useSkillStore();
+  const { userSkills, learningSkills, isLoadingUserSkills, isLoadingLearningSkills, fetchUserSkills, fetchLearningSkills, deleteUserSkill, deleteLearningSkill } = useSkillStore();
+  const { userBadges, fetchUserBadges } = useBadgeStore();
+  const { userReviews, fetchUserReviews } = useReviewStore();
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserSkills().catch(console.error);
     fetchLearningSkills().catch(console.error);
-  }, [fetchUserSkills, fetchLearningSkills]);
+    fetchUserBadges().catch(console.error);
+    fetchUserReviews(100, 0).catch(console.error);
+  }, [fetchUserSkills, fetchLearningSkills, fetchUserBadges, fetchUserReviews]);
 
   if (!user) return null;
+
+  // Handle Edit Profile
+  const handleEditProfile = () => {
+    router.push('/profile/edit');
+  };
+
+  // Handle Add Skill
+  const handleAddSkill = () => {
+    router.push('/profile/skills/new');
+  };
+
+  // Handle Edit Skill
+  const handleEditSkill = (skillId: number) => {
+    router.push(`/profile/skills/${skillId}/edit`);
+  };
+
+  // Handle Delete Skill
+  const handleDeleteSkill = async (skillId: number) => {
+    if (!confirm('Are you sure you want to delete this skill?')) return;
+    
+    setIsDeleting(skillId);
+    try {
+      await deleteUserSkill(skillId);
+      toast.success('Skill deleted successfully');
+      fetchUserSkills().catch(console.error);
+    } catch (error) {
+      toast.error('Failed to delete skill');
+      console.error(error);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  // Handle Remove Learning Skill
+  const handleRemoveLearningSkill = async (skillId: number) => {
+    if (!confirm('Are you sure you want to remove this learning goal?')) return;
+    
+    setIsDeleting(skillId);
+    try {
+      await deleteLearningSkill(skillId);
+      toast.success('Learning goal removed');
+      fetchLearningSkills().catch(console.error);
+    } catch (error) {
+      toast.error('Failed to remove learning goal');
+      console.error(error);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  // Handle Find Tutors
+  const handleFindTutors = (skillId: number, skillName: string) => {
+    router.push(`/marketplace?skill=${skillName}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +121,7 @@ function ProfileContent() {
                   <p className="text-muted-foreground">@{user.username} • Joined {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={handleEditProfile}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
@@ -65,7 +129,7 @@ function ProfileContent() {
                     </svg>
                     Edit Profile
                   </Button>
-                  <Button>
+                  <Button onClick={handleAddSkill}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
                       <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -171,7 +235,10 @@ function ProfileContent() {
                           <span className={`w-2 h-2 rounded-full ${skill.is_available ? 'bg-green-500' : 'bg-red-500'} mr-2`}></span>
                           <span className="text-sm">{skill.is_available ? 'Available' : 'Unavailable'}</span>
                         </div>
-                        <Button variant="outline" size="sm">Edit</Button>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditSkill(skill.id)}>Edit</Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteSkill(skill.id)} disabled={isDeleting === skill.id}>Delete</Button>
+                        </div>
                       </CardFooter>
                     </Card>
                   ))
@@ -185,7 +252,7 @@ function ProfileContent() {
                   </div>
                   <h3 className="font-medium mb-1">Add New Skill</h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">Share your knowledge and earn time credits</p>
-                  <Button variant="outline">Add Skill</Button>
+                  <Button variant="outline" onClick={handleAddSkill}>Add Skill</Button>
                 </Card>
               </div>
             </TabsContent>
@@ -218,8 +285,8 @@ function ProfileContent() {
                         <p className="text-sm text-muted-foreground">{skill.notes || 'No notes'}</p>
                       </CardContent>
                       <CardFooter className="flex justify-between">
-                        <Button variant="outline" size="sm">Remove</Button>
-                        <Button size="sm">Find Tutors</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleRemoveLearningSkill(skill.id)} disabled={isDeleting === skill.id}>Remove</Button>
+                        <Button size="sm" onClick={() => handleFindTutors(skill.id, skill.skill?.name || '')}>Find Tutors</Button>
                       </CardFooter>
                     </Card>
                   ))
@@ -233,35 +300,78 @@ function ProfileContent() {
                   </div>
                   <h3 className="font-medium mb-1">Add Learning Goal</h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">What skills would you like to learn?</p>
-                  <Button variant="outline">Add Skill</Button>
+                  <Button variant="outline" onClick={handleAddSkill}>Add Skill</Button>
                 </Card>
               </div>
             </TabsContent>
 
             {/* Reviews Tab */}
             <TabsContent value="reviews" className="mt-6">
-              <div className="text-center py-8 text-muted-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-                <p className="text-lg font-medium">No reviews yet</p>
-                <p className="text-sm mt-1">Complete sessions to receive reviews from students!</p>
-              </div>
+              {userReviews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  <p className="text-lg font-medium">No reviews yet</p>
+                  <p className="text-sm mt-1">Complete sessions to receive reviews from students!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userReviews.map((review: any) => (
+                    <Card key={review.id}>
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-base">{review.reviewer?.full_name || 'Anonymous'}</CardTitle>
+                            <CardDescription>{new Date(review.created_at).toLocaleDateString()}</CardDescription>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={i < review.rating ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" className={i < review.rating ? "text-yellow-400" : "text-gray-300"}>
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                              </svg>
+                            ))}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm">{review.comment}</p>
+                        {review.tags && <div className="flex flex-wrap gap-2 mt-3">{review.tags.split(',').map((tag: string) => <Badge key={tag} variant="outline" className="text-xs">{tag.trim()}</Badge>)}</div>}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             {/* Badges Tab */}
             <TabsContent value="badges" className="mt-6">
-              <div className="text-center py-8 text-muted-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
-                  <path d="M6 10c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8h-8" />
-                  <polyline points="15 14 18 10 21 14" />
-                  <path d="M6 14H3" />
-                  <path d="M6 18H3" />
-                  <path d="M6 22H3" />
-                </svg>
-                <p className="text-lg font-medium">No badges yet</p>
-                <p className="text-sm mt-1">Complete sessions and achievements to earn badges!</p>
-              </div>
+              {userBadges.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 opacity-50">
+                    <path d="M6 10c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8h-8" />
+                    <polyline points="15 14 18 10 21 14" />
+                    <path d="M6 14H3" />
+                    <path d="M6 18H3" />
+                    <path d="M6 22H3" />
+                  </svg>
+                  <p className="text-lg font-medium">No badges yet</p>
+                  <p className="text-sm mt-1">Complete sessions and achievements to earn badges!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {userBadges.map((userBadge: any) => (
+                    <div key={userBadge.id} className="flex flex-col items-center">
+                      <div className={`h-20 w-20 rounded-full flex items-center justify-center mb-3 ${userBadge.is_pinned ? 'ring-2 ring-yellow-400' : ''}`} style={{ backgroundColor: userBadge.badge?.color || '#e5e7eb' }}>
+                        <span className="text-3xl">{userBadge.badge?.icon || '🏆'}</span>
+                      </div>
+                      <h3 className="font-medium text-center text-sm">{userBadge.badge?.name}</h3>
+                      <Badge className="mt-2 text-xs">{userBadge.badge?.type}</Badge>
+                      <p className="text-xs text-muted-foreground mt-1">Earned {new Date(userBadge.earned_at).toLocaleDateString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
