@@ -144,42 +144,42 @@ func (s *UserService) GetUserStats(userID uint) (*UserStats, error) {
 
 // calculateTeachingHours calculates total hours user has taught
 // Sums duration of all completed sessions where user is the teacher
-// Returns 0 if sessionRepo is not initialized (for backward compatibility)
-func (s *UserService) calculateTeachingHours(userID uint) int {
+// Returns 0.0 if sessionRepo is not initialized (for backward compatibility)
+func (s *UserService) calculateTeachingHours(userID uint) float64 {
 	// Check if session repository is available
 	if s.sessionRepo == nil {
-		return 0 // Return 0 if not initialized
+		return 0.0 // Return 0.0 if not initialized
 	}
 
 	// Query database for total teaching hours
 	totalHours, err := s.sessionRepo.GetTotalTeachingHours(userID)
 	if err != nil {
-		// Log error but don't fail - return 0 as fallback
-		return 0
+		// Log error but don't fail - return 0.0 as fallback
+		return 0.0
 	}
 
-	// Convert float64 to int (truncate decimal places)
-	return int(totalHours)
+	// Return float64 to preserve precision (e.g., 1.5 hours)
+	return totalHours
 }
 
 // calculateLearningHours calculates total hours user has learned
 // Sums duration of all completed sessions where user is the student
-// Returns 0 if sessionRepo is not initialized (for backward compatibility)
-func (s *UserService) calculateLearningHours(userID uint) int {
+// Returns 0.0 if sessionRepo is not initialized (for backward compatibility)
+func (s *UserService) calculateLearningHours(userID uint) float64 {
 	// Check if session repository is available
 	if s.sessionRepo == nil {
-		return 0 // Return 0 if not initialized
+		return 0.0 // Return 0.0 if not initialized
 	}
 
 	// Query database for total learning hours
 	totalHours, err := s.sessionRepo.GetTotalLearningHours(userID)
 	if err != nil {
-		// Log error but don't fail - return 0 as fallback
-		return 0
+		// Log error but don't fail - return 0.0 as fallback
+		return 0.0
 	}
 
-	// Convert float64 to int (truncate decimal places)
-	return int(totalHours)
+	// Return float64 to preserve precision (e.g., 1.5 hours)
+	return totalHours
 }
 
 // UpdateAvatar updates user avatar
