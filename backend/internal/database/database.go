@@ -55,6 +55,7 @@ func Connect(cfg *config.DatabaseConfig) error {
 }
 
 // AutoMigrate runs database migrations (only if tables don't exist)
+// Also creates performance indexes for query optimization
 func AutoMigrate() error {
   if DB == nil {
     return fmt.Errorf("database not connected")
@@ -65,6 +66,10 @@ func AutoMigrate() error {
   var exists int
   if err := DB.Raw("SELECT 1 FROM information_schema.tables WHERE table_schema = CURRENT_SCHEMA() AND table_name = 'users' LIMIT 1").Scan(&exists).Error; err == nil && exists == 1 {
     log.Println("✅ Database tables already exist, skipping migrations")
+    // Still create indexes if they don't exist
+    if err := RunMigrations(DB); err != nil {
+      log.Printf("⚠️  Warning: Failed to create indexes: %v", err)
+    }
     return nil
   }
 
@@ -73,6 +78,11 @@ func AutoMigrate() error {
   err := models.AutoMigrate(DB)
   if err != nil {
     return fmt.Errorf("failed to run migrations: %w", err)
+  }
+
+  // Create performance indexes
+  if err := RunMigrations(DB); err != nil {
+    return fmt.Errorf("failed to create indexes: %w", err)
   }
 
   log.Println("✅ Database migrations completed")
