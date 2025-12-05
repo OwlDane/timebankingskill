@@ -40,6 +40,22 @@ func main() {
   // Initialize Gin router
   router := gin.New()
 
+  // Set trusted proxies for security
+  // Only trust localhost and internal IPs in development
+  // In production, set this to your actual proxy/load balancer IPs
+  if cfg.Server.GinMode == "debug" {
+    // Development: trust localhost only
+    router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+  } else {
+    // Production: trust specific IPs (configure via environment)
+    // Example: TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12
+    trustedProxies := []string{"127.0.0.1"}
+    if proxies := cfg.Server.TrustedProxies; proxies != "" {
+      trustedProxies = append(trustedProxies, proxies)
+    }
+    router.SetTrustedProxies(trustedProxies)
+  }
+
   // Apply middleware
   router.Use(middleware.Logger())
   router.Use(middleware.Recovery())

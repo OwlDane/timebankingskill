@@ -19,8 +19,9 @@ type Config struct {
 
 // ServerConfig holds server-related configuration
 type ServerConfig struct {
-	Port    string
-	GinMode string
+	Port           string
+	GinMode        string
+	TrustedProxies string // Comma-separated list of trusted proxy IPs
 }
 
 // DatabaseConfig holds database connection configuration
@@ -63,8 +64,9 @@ func Load() (*Config, error) {
 
 	config := &Config{
 		Server: ServerConfig{
-			Port:    getEnv("PORT", ""),
-			GinMode: getEnv("GIN_MODE", ""),
+			Port:           getEnv("PORT", ""),
+			GinMode:        getEnv("GIN_MODE", ""),
+			TrustedProxies: getEnv("TRUSTED_PROXIES", ""),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", ""),
