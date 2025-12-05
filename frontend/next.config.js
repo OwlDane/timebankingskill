@@ -1,33 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Image optimization
+    // Image optimization
     images: {
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
         imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
         minimumCacheTTL: 60,
         dangerouslyAllowSVG: true,
-        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     },
 
     // Performance optimizations
     compress: true,
     productionBrowserSourceMaps: false,
-
-    // Bundle analysis (optional - uncomment to use)
-        webpack: (config, { isServer }) => {
-        if (!isServer) {
-            config.optimization.splitChunks.cacheGroups = {
-            ...config.optimization.splitChunks.cacheGroups,
-            vendor: {
-                test: /[\\/]node_modules[\\/]/,
-                name: 'vendors',
-                priority: 10,
-            },
-            };
-        }
-        return config;
-        },
 
     // Experimental features for better performance
     experimental: {
@@ -55,24 +39,7 @@ const nextConfig = {
                     },
                 ],
             },
-        ];
-    },
-
-    // Redirects for old routes (if needed)
-    async redirects() {
-        return [];
-    },
-
-    // Rewrites for API
-    async rewrites() {
-        return {
-            beforeFiles: [
-                {
-                    source: '/api/:path*',
-                    destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/:path*`,
-                },
-            ],
-        };
+        ]
     },
 };
 
