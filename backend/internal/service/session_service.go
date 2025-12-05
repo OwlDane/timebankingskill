@@ -114,6 +114,36 @@ func (s *SessionService) BookSession(studentID uint, req *dto.CreateSessionReque
 // 2. Credits remain held until session is completed
 // 3. If session is cancelled, credits are refunded to student
 // 4. If session is completed, credits are transferred to teacher
+//
+// Validation Steps:
+//   1. Verify session exists
+//   2. Check authorization (teacher owns session)
+//   3. Verify session is pending
+//   4. Validate student still has sufficient credits
+//
+// Credit Hold Process:
+//   1. Deduct credits from student's available balance
+//   2. Create transaction record for audit trail
+//   3. Mark session as approved with credits held
+//   4. Allow teacher to update session details
+//
+// Parameters:
+//   - teacherID: Teacher approving the session
+//   - sessionID: Session to approve
+//   - req: Approval request with optional scheduling details
+//
+// Returns:
+//   - *SessionResponse: Updated session details
+//   - error: If validation fails or database error
+//
+// Side Effects:
+//   - Updates student credit balance
+//   - Creates transaction record
+//   - Updates session status
+//
+// Example:
+//   session, err := sessionService.ApproveSession(teacherID, sessionID, approvalReq)
+//   // Credits are now held in escrow
 func (s *SessionService) ApproveSession(teacherID, sessionID uint, req *dto.ApproveSessionRequest) (*dto.SessionResponse, error) {
 	// Fetch session from database
 	session, err := s.sessionRepo.GetByID(sessionID)

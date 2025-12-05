@@ -25,9 +25,35 @@ func NewTransactionService(
 	}
 }
 
-// CreateTransaction creates a new transaction record
+// CreateTransaction creates a new transaction record and records balance history
 // This function records the transaction history but does NOT update user balance
 // Balance is updated separately through UpdateUserBalance
+//
+// Transaction Recording:
+//   - Records balance before and after transaction
+//   - Creates audit trail for all credit movements
+//   - Supports optional session linking for context
+//
+// Balance Validation:
+//   - Prevents negative balance for spend/hold transactions
+//   - Allows negative balance for refunds (to correct errors)
+//   - Validates sufficient credits before deduction
+//
+// Parameters:
+//   - userID: User performing the transaction
+//   - txType: Type of transaction (earned, spent, hold, refund, bonus, penalty)
+//   - amount: Credit amount (positive for earnings, negative for spending)
+//   - description: Human-readable description of transaction
+//   - sessionID: Optional session ID for context
+//
+// Returns:
+//   - *Transaction: Created transaction record
+//   - error: If balance check fails or database error
+//
+// Example:
+//   tx, err := transactionService.CreateTransaction(
+//     userID, TransactionEarned, 10.0, "Earned from teaching", &sessionID,
+//   )
 func (s *TransactionService) CreateTransaction(
 	userID uint,
 	txType models.TransactionType,
@@ -35,7 +61,7 @@ func (s *TransactionService) CreateTransaction(
 	description string,
 	sessionID *uint,
 ) (*models.Transaction, error) {
-	// Get current balance before transaction
+	// Get current balance before transaction for audit trail
 	balanceBefore, err := s.transactionRepo.GetUserBalance(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current balance: %w", err)
@@ -45,11 +71,12 @@ func (s *TransactionService) CreateTransaction(
 	balanceAfter := balanceBefore + amount
 
 	// Prevent negative balance for non-refund transactions
+	// Refunds are allowed to go negative to correct accounting errors
 	if balanceAfter < 0 && txType != models.TransactionRefund {
 		return nil, errors.New("insufficient credits")
 	}
 
-	// Create transaction record
+	// Create transaction record with balance snapshot
 	transaction := &models.Transaction{
 		UserID:        userID,
 		Type:          txType,
@@ -137,6 +164,31 @@ func (s *TransactionService) ReleaseCredits(
 
 // TransferCredits transfers credits from student to teacher (when session completes)
 // This creates two transactions: debit from student, credit to teacher
+// Performance: O(1) - constant time operation (2 database writes)
+// Atomicity: Both transactions must succeed or entire operation fails
+//
+// Transaction Flow:
+//   1. Debit credits from student (negative amount)
+//   2. Credit credits to teacher (positive amount)
+//   3. Both transactions linked to same session for audit trail
+//
+// Error Handling:
+//   - If student debit fails: operation stops (teacher not credited)
+//   - If teacher credit fails: student already debited (must be handled manually)
+//   - Should be wrapped in database transaction for true atomicity
+//
+// Parameters:
+//   - studentID: User learning (paying credits)
+//   - teacherID: User teaching (receiving credits)
+//   - amount: Credit amount to transfer
+//   - sessionID: Session ID for audit trail
+//
+// Returns:
+//   - error: If either transaction fails
+//
+// Example:
+//   err := transactionService.TransferCredits(studentID, teacherID, 10.0, sessionID)
+//   // Transfers 10 credits from student to teacher
 func (s *TransactionService) TransferCredits(
 	studentID uint,
 	teacherID uint,
@@ -148,7 +200,7 @@ func (s *TransactionService) TransferCredits(
 		return errors.New("transfer amount must be positive")
 	}
 
-	// Debit from student
+	// Debit from student (negative amount)
 	_, err := s.CreateTransaction(
 		studentID,
 		models.TransactionSpent,
@@ -160,7 +212,7 @@ func (s *TransactionService) TransferCredits(
 		return fmt.Errorf("failed to debit student: %w", err)
 	}
 
-	// Credit to teacher
+	// Credit to teacher (positive amount)
 	_, err = s.CreateTransaction(
 		teacherID,
 		models.TransactionEarned,
