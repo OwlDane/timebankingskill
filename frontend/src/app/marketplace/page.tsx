@@ -107,7 +107,7 @@ export default function MarketplacePage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {skills.map((skill: Skill) => (
                                         <Card key={skill.id} className="group overflow-hidden bg-card/50 border-border/50 hover:border-primary/30 hover:bg-card/80 transition-all duration-300">
-                                            <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                                            <div className="aspect-video w-full overflow-hidden bg-linear-to-br from-primary/5 to-primary/10 flex items-center justify-center">
                                                 {skill.icon ? (
                                                     <span className="text-5xl group-hover:scale-110 transition-transform">{skill.icon}</span>
                                                 ) : (
