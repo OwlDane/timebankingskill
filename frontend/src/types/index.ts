@@ -372,3 +372,86 @@ export interface Notification {
     created_at: string;
     updated_at: string;
 }
+
+// Community Types - Forum
+export interface ForumCategory {
+    id: number;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    thread_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ForumThread {
+    id: number;
+    category_id: number;
+    category?: ForumCategory;
+    author_id: number;
+    author?: UserProfile;
+    title: string;
+    content: string;
+    tags: string[];
+    view_count: number;
+    reply_count: number;
+    is_pinned: boolean;
+    is_closed: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ForumReply {
+    id: number;
+    thread_id: number;
+    thread?: ForumThread;
+    author_id: number;
+    author?: UserProfile;
+    content: string;
+    like_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+// Community Types - Success Stories
+export interface SuccessStory {
+    id: number;
+    user_id: number;
+    user?: UserProfile;
+    title: string;
+    description: string;
+    images: string[];
+    tags: string[];
+    like_count: number;
+    comment_count: number;
+    is_published: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface StoryComment {
+    id: number;
+    story_id: number;
+    story?: SuccessStory;
+    author_id: number;
+    author?: UserProfile;
+    content: string;
+    like_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+// Community Types - Endorsements
+export interface Endorsement {
+    id: number;
+    user_id: number;
+    user?: UserProfile;
+    skill_id: number;
+    skill?: Skill;
+    endorser_id: number;
+    endorser?: UserProfile;
+    message: string;
+    created_at: string;
+    updated_at: string;
+}
