@@ -11,9 +11,10 @@ import (
 
 // EndorsementService handles endorsement business logic
 type EndorsementService struct {
-	endorsementRepo *repository.EndorsementRepository
-	userRepo        *repository.UserRepository
-	skillRepo       *repository.SkillRepository
+	endorsementRepo      *repository.EndorsementRepository
+	userRepo             *repository.UserRepository
+	skillRepo            *repository.SkillRepository
+	notificationService  *NotificationService
 }
 
 // NewEndorsementService creates a new endorsement service
@@ -23,9 +24,25 @@ func NewEndorsementService(
 	skillRepo *repository.SkillRepository,
 ) *EndorsementService {
 	return &EndorsementService{
-		endorsementRepo: endorsementRepo,
-		userRepo:        userRepo,
-		skillRepo:       skillRepo,
+		endorsementRepo:     endorsementRepo,
+		userRepo:            userRepo,
+		skillRepo:           skillRepo,
+		notificationService: nil,
+	}
+}
+
+// NewEndorsementServiceWithNotification creates a new endorsement service with notifications
+func NewEndorsementServiceWithNotification(
+	endorsementRepo *repository.EndorsementRepository,
+	userRepo *repository.UserRepository,
+	skillRepo *repository.SkillRepository,
+	notificationService *NotificationService,
+) *EndorsementService {
+	return &EndorsementService{
+		endorsementRepo:     endorsementRepo,
+		userRepo:            userRepo,
+		skillRepo:           skillRepo,
+		notificationService: notificationService,
 	}
 }
 

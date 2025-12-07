@@ -11,8 +11,9 @@ import (
 
 // StoryService handles success story business logic
 type StoryService struct {
-	storyRepo *repository.StoryRepository
-	userRepo  *repository.UserRepository
+	storyRepo            *repository.StoryRepository
+	userRepo             *repository.UserRepository
+	notificationService  *NotificationService
 }
 
 // NewStoryService creates a new story service
@@ -21,8 +22,22 @@ func NewStoryService(
 	userRepo *repository.UserRepository,
 ) *StoryService {
 	return &StoryService{
-		storyRepo: storyRepo,
-		userRepo:  userRepo,
+		storyRepo:           storyRepo,
+		userRepo:            userRepo,
+		notificationService: nil,
+	}
+}
+
+// NewStoryServiceWithNotification creates a new story service with notifications
+func NewStoryServiceWithNotification(
+	storyRepo *repository.StoryRepository,
+	userRepo *repository.UserRepository,
+	notificationService *NotificationService,
+) *StoryService {
+	return &StoryService{
+		storyRepo:           storyRepo,
+		userRepo:            userRepo,
+		notificationService: notificationService,
 	}
 }
 

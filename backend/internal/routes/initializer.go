@@ -88,7 +88,9 @@ func InitializeNotificationHandler(db *gorm.DB) *handler.NotificationHandler {
 func InitializeForumHandler(db *gorm.DB) *handler.ForumHandler {
 	forumRepo := repository.NewForumRepository(db)
 	userRepo := repository.NewUserRepository(db)
-	forumService := service.NewForumService(forumRepo, userRepo)
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo, userRepo)
+	forumService := service.NewForumServiceWithNotification(forumRepo, userRepo, notificationService)
 	return handler.NewForumHandler(forumService)
 }
 
@@ -96,7 +98,9 @@ func InitializeForumHandler(db *gorm.DB) *handler.ForumHandler {
 func InitializeStoryHandler(db *gorm.DB) *handler.StoryHandler {
 	storyRepo := repository.NewStoryRepository(db)
 	userRepo := repository.NewUserRepository(db)
-	storyService := service.NewStoryService(storyRepo, userRepo)
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo, userRepo)
+	storyService := service.NewStoryServiceWithNotification(storyRepo, userRepo, notificationService)
 	return handler.NewStoryHandler(storyService)
 }
 
@@ -105,6 +109,8 @@ func InitializeEndorsementHandler(db *gorm.DB) *handler.EndorsementHandler {
 	endorsementRepo := repository.NewEndorsementRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	skillRepo := repository.NewSkillRepository(db)
-	endorsementService := service.NewEndorsementService(endorsementRepo, userRepo, skillRepo)
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo, userRepo)
+	endorsementService := service.NewEndorsementServiceWithNotification(endorsementRepo, userRepo, skillRepo, notificationService)
 	return handler.NewEndorsementHandler(endorsementService)
 }

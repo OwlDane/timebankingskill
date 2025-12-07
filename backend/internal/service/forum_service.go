@@ -11,8 +11,9 @@ import (
 
 // ForumService handles forum business logic
 type ForumService struct {
-	forumRepo *repository.ForumRepository
-	userRepo  *repository.UserRepository
+	forumRepo            *repository.ForumRepository
+	userRepo             *repository.UserRepository
+	notificationService  *NotificationService
 }
 
 // NewForumService creates a new forum service
@@ -21,8 +22,22 @@ func NewForumService(
 	userRepo *repository.UserRepository,
 ) *ForumService {
 	return &ForumService{
-		forumRepo: forumRepo,
-		userRepo:  userRepo,
+		forumRepo:           forumRepo,
+		userRepo:            userRepo,
+		notificationService: nil,
+	}
+}
+
+// NewForumServiceWithNotification creates a new forum service with notifications
+func NewForumServiceWithNotification(
+	forumRepo *repository.ForumRepository,
+	userRepo *repository.UserRepository,
+	notificationService *NotificationService,
+) *ForumService {
+	return &ForumService{
+		forumRepo:           forumRepo,
+		userRepo:            userRepo,
+		notificationService: notificationService,
 	}
 }
 
