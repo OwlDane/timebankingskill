@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/timebankingskill/backend/internal/config"
 	"github.com/timebankingskill/backend/internal/dto"
 	"github.com/timebankingskill/backend/internal/models"
 	"github.com/timebankingskill/backend/internal/repository"
@@ -28,15 +29,16 @@ func NewVideoSessionService(
 	videoSessionRepo *repository.VideoSessionRepository,
 	sessionRepo *repository.SessionRepository,
 	userRepo *repository.UserRepository,
+	cfg *config.Config,
 ) *VideoSessionService {
 	return &VideoSessionService{
 		videoSessionRepo:    videoSessionRepo,
 		sessionRepo:         sessionRepo,
 		userRepo:            userRepo,
 		notificationService: nil,
-		jitsiSecret:         "your-jitsi-secret", // Should be from env
-		jitsiAppID:          "your-jitsi-app-id", // Should be from env
-		jitsiBaseURL:        "https://meet.jit.si",
+		jitsiSecret:         cfg.Jitsi.PrivateKey,
+		jitsiAppID:          cfg.Jitsi.AppID,
+		jitsiBaseURL:        cfg.Jitsi.BaseURL,
 	}
 }
 
@@ -46,15 +48,16 @@ func NewVideoSessionServiceWithNotification(
 	sessionRepo *repository.SessionRepository,
 	userRepo *repository.UserRepository,
 	notificationService *NotificationService,
+	cfg *config.Config,
 ) *VideoSessionService {
 	return &VideoSessionService{
 		videoSessionRepo:    videoSessionRepo,
 		sessionRepo:         sessionRepo,
 		userRepo:            userRepo,
 		notificationService: notificationService,
-		jitsiSecret:         "your-jitsi-secret",
-		jitsiAppID:          "your-jitsi-app-id",
-		jitsiBaseURL:        "https://meet.jit.si",
+		jitsiSecret:         cfg.Jitsi.PrivateKey,
+		jitsiAppID:          cfg.Jitsi.AppID,
+		jitsiBaseURL:        cfg.Jitsi.BaseURL,
 	}
 }
 

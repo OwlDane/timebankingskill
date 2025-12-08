@@ -67,7 +67,7 @@ func main() {
   router.Use(middleware.MonitoringMiddleware())
 
   // Setup routes
-  routes.SetupRoutes(router, database.DB)
+  routes.SetupRoutes(router, database.DB, cfg)
 
   // Add monitoring endpoints
   router.GET("/health", middleware.HealthCheckMiddleware())

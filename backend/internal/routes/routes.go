@@ -2,12 +2,13 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/timebankingskill/backend/internal/config"
 	"github.com/timebankingskill/backend/internal/middleware"
 	"gorm.io/gorm"
 )
 
 // SetupRoutes configures all application routes
-func SetupRoutes(router *gin.Engine, db *gorm.DB) {
+func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Initialize handlers
 	authHandler := InitializeAuthHandler(db)
 	skillHandler := InitializeSkillHandler(db)
@@ -20,7 +21,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	forumHandler := InitializeForumHandler(db)
 	storyHandler := InitializeStoryHandler(db)
 	endorsementHandler := InitializeEndorsementHandler(db)
-	videoSessionHandler := InitializeVideoSessionHandler(db)
+	videoSessionHandler := InitializeVideoSessionHandler(db, cfg)
 
 	// API v1 group
 	v1 := router.Group("/api/v1")

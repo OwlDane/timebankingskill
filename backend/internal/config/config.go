@@ -15,6 +15,7 @@ type Config struct {
 	JWT      JWTConfig
 	CORS     CORSConfig
 	Supabase SupabaseConfig
+	Jitsi    JitsiConfig
 }
 
 // ServerConfig holds server-related configuration
@@ -49,6 +50,13 @@ type CORSConfig struct {
 type SupabaseConfig struct {
 	URL string
 	Key string
+}
+
+// JitsiConfig holds Jitsi Meet configuration
+type JitsiConfig struct {
+	AppID      string
+	PrivateKey string
+	BaseURL    string
 }
 
 // Load loads configuration from environment variables
@@ -88,6 +96,11 @@ func Load() (*Config, error) {
 		Supabase: SupabaseConfig{
 			URL: getEnv("SUPABASE_URL", ""),
 			Key: getEnv("SUPABASE_KEY", ""),
+		},
+		Jitsi: JitsiConfig{
+			AppID:      getEnv("JITSI_APP_ID", ""),
+			PrivateKey: getEnv("JITSI_PRIVATE_KEY", ""),
+			BaseURL:    getEnv("JITSI_BASE_URL", "https://meet.jit.si"),
 		},
 	}
 

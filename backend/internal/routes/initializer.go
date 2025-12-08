@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/timebankingskill/backend/internal/config"
 	"github.com/timebankingskill/backend/internal/handler"
 	"github.com/timebankingskill/backend/internal/repository"
 	"github.com/timebankingskill/backend/internal/service"
@@ -116,12 +117,12 @@ func InitializeEndorsementHandler(db *gorm.DB) *handler.EndorsementHandler {
 }
 
 // InitializeVideoSessionHandler initializes video session handler with dependencies
-func InitializeVideoSessionHandler(db *gorm.DB) *handler.VideoSessionHandler {
+func InitializeVideoSessionHandler(db *gorm.DB, cfg *config.Config) *handler.VideoSessionHandler {
 	videoSessionRepo := repository.NewVideoSessionRepository(db)
 	sessionRepo := repository.NewSessionRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	notificationRepo := repository.NewNotificationRepository(db)
 	notificationService := service.NewNotificationService(notificationRepo, userRepo)
-	videoSessionService := service.NewVideoSessionServiceWithNotification(videoSessionRepo, sessionRepo, userRepo, notificationService)
+	videoSessionService := service.NewVideoSessionServiceWithNotification(videoSessionRepo, sessionRepo, userRepo, notificationService, cfg)
 	return handler.NewVideoSessionHandler(videoSessionService)
 }
