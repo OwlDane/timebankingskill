@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useWhiteboardStore } from '@/stores/whiteboard.store';
 import { whiteboardService } from '@/lib/services/whiteboard.service';
+import { useWhiteboardWebSocket } from '@/lib/hooks/useWhiteboardWebSocket';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Trash2, RotateCcw, RotateCw, Download, Loader2 } from 'lucide-react';
+import { Trash2, RotateCcw, RotateCw, Download, Loader2, Wifi, WifiOff } from 'lucide-react';
 
 interface WhiteboardCanvasProps {
     sessionId: number;
@@ -17,6 +18,7 @@ export function WhiteboardCanvas({ sessionId, isReadOnly = false }: WhiteboardCa
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const lastStrokeRef = useRef<any>(null);
 
     const {
         currentTool,
@@ -29,6 +31,12 @@ export function WhiteboardCanvas({ sessionId, isReadOnly = false }: WhiteboardCa
         undo,
         redo,
     } = useWhiteboardStore();
+
+    // WebSocket for real-time synchronization
+    const { isConnected, sendDrawing, sendClear } = useWhiteboardWebSocket({
+        sessionId,
+        enabled: !isReadOnly,
+    });
 
     // Initialize Fabric.js canvas
     useEffect(() => {
@@ -106,8 +114,9 @@ export function WhiteboardCanvas({ sessionId, isReadOnly = false }: WhiteboardCa
         try {
             setIsSaving(true);
             fabricCanvasRef.current.clear();
-            await whiteboardService.clearWhiteboard(sessionId);
             clearStrokes();
+            sendClear();
+            await whiteboardService.clearWhiteboard(sessionId);
             toast.success('Whiteboard cleared');
         } catch (error) {
             toast.error('Failed to clear whiteboard');
@@ -154,6 +163,25 @@ export function WhiteboardCanvas({ sessionId, isReadOnly = false }: WhiteboardCa
         <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
             {/* Toolbar */}
             <div className="flex items-center gap-2 p-4 border-b border-border bg-muted/50">
+                {/* Connection Status */}
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: isConnected ? '#dcfce7' : '#fee2e2', color: isConnected ? '#166534' : '#991b1b' }}>
+                    {isConnected ? (
+                        <>
+                            <Wifi className="h-3 w-3" />
+                            Connected
+                        </>
+                    ) : (
+                        <>
+                            <WifiOff className="h-3 w-3" />
+                            Offline
+                        </>
+                    )}
+                </div>
+
+                {/* Divider */}
+                <div className="w-px h-6 bg-border" />
+
                 {/* Tool Selection */}
                 <div className="flex items-center gap-2">
                     <Button
