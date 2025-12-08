@@ -32,6 +32,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	sharedFileHandler := InitializeSharedFileHandler(db)
 	whiteboardHandler := InitializeWhiteboardHandler(db)
 	progressHandler := InitializeSkillProgressHandler(db)
+	analyticsHandler := InitializeAnalyticsHandler(db)
 
 	// WebSocket endpoints (before auth middleware)
 	router.GET("/api/v1/ws/whiteboard/:sessionId", func(c *gin.Context) {
@@ -214,6 +215,16 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			progressSummary := protected.Group("/user/progress")
 			{
 				progressSummary.GET("/summary", progressHandler.GetUserProgress)             // GET /api/v1/user/progress/summary
+			}
+
+			// Analytics routes
+			analytics := protected.Group("/analytics")
+			{
+				analytics.GET("/user", analyticsHandler.GetUserAnalytics)                    // GET /api/v1/analytics/user
+				analytics.GET("/user/:userId", analyticsHandler.GetUserAnalyticsByID)        // GET /api/v1/analytics/user/:userId
+				analytics.GET("/platform", analyticsHandler.GetPlatformAnalytics)            // GET /api/v1/analytics/platform
+				analytics.GET("/sessions", analyticsHandler.GetSessionStatistics)            // GET /api/v1/analytics/sessions
+				analytics.GET("/credits", analyticsHandler.GetCreditStatistics)              // GET /api/v1/analytics/credits
 			}
 
 			// Reviews routes

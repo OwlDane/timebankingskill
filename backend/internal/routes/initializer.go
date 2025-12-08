@@ -157,3 +157,15 @@ func InitializeSkillProgressHandler(db *gorm.DB) *handler.SkillProgressHandler {
 	progressService := service.NewSkillProgressService(progressRepo, skillRepo, sessionRepo, notificationService)
 	return handler.NewSkillProgressHandler(progressService)
 }
+
+// InitializeAnalyticsHandler initializes analytics handler with dependencies
+func InitializeAnalyticsHandler(db *gorm.DB) *handler.AnalyticsHandler {
+	userRepo := repository.NewUserRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	reviewRepo := repository.NewReviewRepository(db)
+	skillRepo := repository.NewSkillRepository(db)
+	badgeRepo := repository.NewBadgeRepository(db)
+	analyticsService := service.NewAnalyticsService(userRepo, sessionRepo, transactionRepo, reviewRepo, skillRepo, badgeRepo)
+	return handler.NewAnalyticsHandler(analyticsService)
+}
