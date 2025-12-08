@@ -145,3 +145,15 @@ func InitializeWhiteboardHandler(db *gorm.DB) *handler.WhiteboardHandler {
 	whiteboardService := service.NewWhiteboardService(whiteboardRepo, sessionRepo)
 	return handler.NewWhiteboardHandler(whiteboardService)
 }
+
+// InitializeSkillProgressHandler initializes skill progress handler with dependencies
+func InitializeSkillProgressHandler(db *gorm.DB) *handler.SkillProgressHandler {
+	progressRepo := repository.NewSkillProgressRepository(db)
+	skillRepo := repository.NewSkillRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo, userRepo)
+	progressService := service.NewSkillProgressService(progressRepo, skillRepo, sessionRepo, notificationService)
+	return handler.NewSkillProgressHandler(progressService)
+}

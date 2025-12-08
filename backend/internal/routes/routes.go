@@ -31,6 +31,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	videoSessionHandler := InitializeVideoSessionHandler(db, cfg)
 	sharedFileHandler := InitializeSharedFileHandler(db)
 	whiteboardHandler := InitializeWhiteboardHandler(db)
+	progressHandler := InitializeSkillProgressHandler(db)
 
 	// WebSocket endpoints (before auth middleware)
 	router.GET("/api/v1/ws/whiteboard/:sessionId", func(c *gin.Context) {
@@ -201,6 +202,18 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 				sessions.POST("/:id/whiteboard/clear", whiteboardHandler.ClearWhiteboard)    // POST /api/v1/sessions/:id/whiteboard/clear
 				sessions.GET("/:id/whiteboard/data", whiteboardHandler.GetWhiteboard)        // GET /api/v1/sessions/:id/whiteboard/data
 				sessions.DELETE("/:id/whiteboard", whiteboardHandler.DeleteWhiteboard)       // DELETE /api/v1/sessions/:id/whiteboard
+			}
+
+			// Progress Tracking routes
+			progress := protected.Group("/user/skills")
+			{
+				progress.GET("/:skillId/progress", progressHandler.GetProgress)              // GET /api/v1/user/skills/:skillId/progress
+				progress.PUT("/:skillId/progress", progressHandler.UpdateProgress)           // PUT /api/v1/user/skills/:skillId/progress
+			}
+
+			progressSummary := protected.Group("/user/progress")
+			{
+				progressSummary.GET("/summary", progressHandler.GetUserProgress)             // GET /api/v1/user/progress/summary
 			}
 
 			// Reviews routes
