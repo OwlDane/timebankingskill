@@ -126,3 +126,22 @@ func InitializeVideoSessionHandler(db *gorm.DB, cfg *config.Config) *handler.Vid
 	videoSessionService := service.NewVideoSessionServiceWithNotification(videoSessionRepo, sessionRepo, userRepo, notificationService, cfg)
 	return handler.NewVideoSessionHandler(videoSessionService)
 }
+
+// InitializeSharedFileHandler initializes shared file handler with dependencies
+func InitializeSharedFileHandler(db *gorm.DB) *handler.SharedFileHandler {
+	sharedFileRepo := repository.NewSharedFileRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	userRepo := repository.NewUserRepository(db)
+	notificationRepo := repository.NewNotificationRepository(db)
+	notificationService := service.NewNotificationService(notificationRepo, userRepo)
+	sharedFileService := service.NewSharedFileServiceWithNotification(sharedFileRepo, sessionRepo, userRepo, notificationService)
+	return handler.NewSharedFileHandler(sharedFileService)
+}
+
+// InitializeWhiteboardHandler initializes whiteboard handler with dependencies
+func InitializeWhiteboardHandler(db *gorm.DB) *handler.WhiteboardHandler {
+	whiteboardRepo := repository.NewWhiteboardRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	whiteboardService := service.NewWhiteboardService(whiteboardRepo, sessionRepo)
+	return handler.NewWhiteboardHandler(whiteboardService)
+}

@@ -22,6 +22,8 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	storyHandler := InitializeStoryHandler(db)
 	endorsementHandler := InitializeEndorsementHandler(db)
 	videoSessionHandler := InitializeVideoSessionHandler(db, cfg)
+	sharedFileHandler := InitializeSharedFileHandler(db)
+	whiteboardHandler := InitializeWhiteboardHandler(db)
 
 	// API v1 group
 	v1 := router.Group("/api/v1")
@@ -137,6 +139,19 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 				sessions.POST("/:id/video/start", videoSessionHandler.StartVideoSession)     // POST /api/v1/sessions/:id/video/start
 				sessions.GET("/:id/video/status", videoSessionHandler.GetVideoSessionStatus) // GET /api/v1/sessions/:id/video/status
 				sessions.POST("/:id/video/end", videoSessionHandler.EndVideoSession)         // POST /api/v1/sessions/:id/video/end
+
+				// File sharing routes
+				sessions.POST("/:id/files/upload", sharedFileHandler.UploadFile)             // POST /api/v1/sessions/:id/files/upload
+				sessions.GET("/:id/files", sharedFileHandler.GetSessionFiles)                // GET /api/v1/sessions/:id/files
+				sessions.GET("/:id/files/stats", sharedFileHandler.GetSessionFileStats)      // GET /api/v1/sessions/:id/files/stats
+				sessions.POST("/:id/files/download/:fileId", sharedFileHandler.GetFile)      // GET /api/v1/sessions/:id/files/:fileId
+
+				// Whiteboard routes
+				sessions.GET("/:id/whiteboard", whiteboardHandler.GetOrCreateWhiteboard)     // GET /api/v1/sessions/:id/whiteboard
+				sessions.POST("/:id/whiteboard/save", whiteboardHandler.SaveDrawing)         // POST /api/v1/sessions/:id/whiteboard/save
+				sessions.POST("/:id/whiteboard/clear", whiteboardHandler.ClearWhiteboard)    // POST /api/v1/sessions/:id/whiteboard/clear
+				sessions.GET("/:id/whiteboard/data", whiteboardHandler.GetWhiteboard)        // GET /api/v1/sessions/:id/whiteboard/data
+				sessions.DELETE("/:id/whiteboard", whiteboardHandler.DeleteWhiteboard)       // DELETE /api/v1/sessions/:id/whiteboard
 			}
 
 			// Reviews routes
