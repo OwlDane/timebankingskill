@@ -532,6 +532,40 @@ export interface FileStats {
     total_size_mb: number;
 }
 
+// Progress Tracking types
+export interface SkillProgress {
+    id: number;
+    user_id: number;
+    skill_id: number;
+    skill_name: string;
+    progress_percentage: number;
+    sessions_completed: number;
+    total_hours_spent: number;
+    current_level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+    last_activity_at: number;
+    estimated_completion_at: number;
+    milestones: Milestone[];
+    created_at: number;
+    updated_at: number;
+}
+
+export interface Milestone {
+    id: number;
+    title: string;
+    description: string;
+    progress_threshold: number;
+    is_achieved: boolean;
+    achieved_at?: number;
+    created_at: number;
+}
+
+export interface ProgressSummary {
+    total_skills_learning: number;
+    average_progress: number;
+    total_hours_spent: number;
+    skills_progresses: SkillProgress[];
+}
+
 // Whiteboard Types
 export interface Point {
     x: number;
