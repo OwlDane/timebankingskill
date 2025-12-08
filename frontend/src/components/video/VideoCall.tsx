@@ -9,36 +9,15 @@ interface VideoCallProps {
     onCallEnd?: () => void;
 }
 
+declare global {
+    interface Window {
+        JitsiMeetExternalAPI: any;
+    }
+}
+
 export function VideoCall({ roomId, userName, onCallEnd }: VideoCallProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const jitsiApi = useRef<any>(null);
-    const { jitsiUrl } = useVideoStore();
-
-    useEffect(() => {
-        if (!containerRef.current || !roomId) return;
-
-        // Load Jitsi Meet script
-        const script = document.createElement('script');
-        script.src = 'https://meet.jit.si/external_api.js';
-        script.async = true;
-        script.onload = () => {
-            if (window.JitsiMeetExternalAPI) {
-                initializeJitsi();
-            }
-        };
-        document.body.appendChild(script);
-
-        return () => {
-            // Cleanup
-            if (jitsiApi.current) {
-                jitsiApi.current.dispose();
-                jitsiApi.current = null;
-            }
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-        };
-    }, [roomId]);
 
     const initializeJitsi = () => {
         if (!containerRef.current) return;
@@ -65,7 +44,7 @@ export function VideoCall({ roomId, userName, onCallEnd }: VideoCallProps) {
         };
 
         try {
-            jitsiApi.current = new (window as any).JitsiMeetExternalAPI('meet.jit.si', options);
+            jitsiApi.current = new window.JitsiMeetExternalAPI('meet.jit.si', options);
 
             // Handle call end
             jitsiApi.current.addEventListener('videoConferenceLeft', () => {
@@ -82,6 +61,32 @@ export function VideoCall({ roomId, userName, onCallEnd }: VideoCallProps) {
             console.error('Failed to initialize Jitsi:', error);
         }
     };
+
+    useEffect(() => {
+        if (!containerRef.current || !roomId) return;
+
+        // Load Jitsi Meet script
+        const script = document.createElement('script');
+        script.src = 'https://meet.jit.si/external_api.js';
+        script.async = true;
+        script.onload = () => {
+            if (typeof window !== 'undefined' && window.JitsiMeetExternalAPI) {
+                initializeJitsi();
+            }
+        };
+        document.body.appendChild(script);
+
+        return () => {
+            // Cleanup
+            if (jitsiApi.current) {
+                jitsiApi.current.dispose();
+                jitsiApi.current = null;
+            }
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+        };
+    }, [roomId, userName, onCallEnd]);
 
     return (
         <div className="w-full h-full bg-black rounded-lg overflow-hidden">

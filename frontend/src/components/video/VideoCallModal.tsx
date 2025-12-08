@@ -85,7 +85,7 @@ export function VideoCallModal({ isOpen, onClose, sessionId, partnerName }: Vide
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl h-[600px] p-0 overflow-hidden">
-                <DialogHeader className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black to-transparent p-4">
+                <DialogHeader className="absolute top-0 left-0 right-0 z-10 bg-linear-to-b from-black to-transparent p-4">
                     <DialogTitle className="text-white flex items-center justify-between">
                         <span>Video Call with {partnerName}</span>
                         {callStarted && <span className="text-sm font-normal">{formatDuration(callDuration)}</span>}
