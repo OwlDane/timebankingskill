@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { VideoCall } from './VideoCall';
+import { WhiteboardCanvas } from '@/components/whiteboard';
 import { useVideoStore } from '@/stores/video.store';
 import { videoService } from '@/lib/services/video.service';
 import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
-import { Phone, PhoneOff } from 'lucide-react';
+import { Phone, PhoneOff, Palette } from 'lucide-react';
 
 interface VideoCallModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export function VideoCallModal({ isOpen, onClose, sessionId, partnerName }: Vide
     const [isLoading, setIsLoading] = useState(false);
     const [callStarted, setCallStarted] = useState(false);
     const [callDuration, setCallDuration] = useState(0);
+    const [activeTab, setActiveTab] = useState<'video' | 'whiteboard'>('video');
     const { user } = useAuthStore();
     const { currentSession, setCurrentSession, setError } = useVideoStore();
 
@@ -84,7 +86,7 @@ export function VideoCallModal({ isOpen, onClose, sessionId, partnerName }: Vide
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl h-[600px] p-0 overflow-hidden">
+            <DialogContent className="max-w-6xl h-[700px] p-0 overflow-hidden">
                 <DialogHeader className="absolute top-0 left-0 right-0 z-10 bg-linear-to-b from-black to-transparent p-4">
                     <DialogTitle className="text-white flex items-center justify-between">
                         <span>Video Call with {partnerName}</span>
@@ -110,23 +112,51 @@ export function VideoCallModal({ isOpen, onClose, sessionId, partnerName }: Vide
                             </Button>
                         </div>
                     ) : currentSession ? (
-                        <div className="w-full h-full relative">
-                            <VideoCall
-                                roomId={currentSession.room_id}
-                                userName={user?.full_name || 'User'}
-                                onCallEnd={handleEndCall}
-                            />
-                            <div className="absolute bottom-4 right-4 z-20">
+                        <div className="w-full h-full flex flex-col">
+                            {/* Tabs */}
+                            <div className="flex gap-2 p-4 bg-muted border-b border-border">
                                 <Button
-                                    onClick={handleEndCall}
-                                    disabled={isLoading}
-                                    size="lg"
-                                    variant="destructive"
-                                    className="bg-red-600 hover:bg-red-700"
+                                    variant={activeTab === 'video' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setActiveTab('video')}
                                 >
-                                    <PhoneOff className="mr-2 h-5 w-5" />
-                                    {isLoading ? 'Ending...' : 'End Call'}
+                                    📹 Video
                                 </Button>
+                                <Button
+                                    variant={activeTab === 'whiteboard' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setActiveTab('whiteboard')}
+                                >
+                                    <Palette className="mr-2 h-4 w-4" />
+                                    Whiteboard
+                                </Button>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 overflow-hidden relative">
+                                {activeTab === 'video' ? (
+                                    <>
+                                        <VideoCall
+                                            roomId={currentSession.room_id}
+                                            userName={user?.full_name || 'User'}
+                                            onCallEnd={handleEndCall}
+                                        />
+                                        <div className="absolute bottom-4 right-4 z-20">
+                                            <Button
+                                                onClick={handleEndCall}
+                                                disabled={isLoading}
+                                                size="lg"
+                                                variant="destructive"
+                                                className="bg-red-600 hover:bg-red-700"
+                                            >
+                                                <PhoneOff className="mr-2 h-5 w-5" />
+                                                {isLoading ? 'Ending...' : 'End Call'}
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <WhiteboardCanvas sessionId={sessionId} />
+                                )}
                             </div>
                         </div>
                     ) : null}
