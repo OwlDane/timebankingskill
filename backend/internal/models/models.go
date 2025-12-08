@@ -24,5 +24,6 @@ func AutoMigrate(db *gorm.DB) error {
 		&StoryComment{},
 		&Endorsement{},
 		&VideoSession{},
+		&SharedFile{},
 	)
 }
