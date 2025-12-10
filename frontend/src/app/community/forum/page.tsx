@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, MessageSquare, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ForumCategoryCard } from '@/components/community';
 import { communityService } from '@/lib/services/community.service';
+import { useAuthStore } from '@/stores/auth.store';
 import type { ForumCategory } from '@/types';
 import { toast } from 'sonner';
 
 export default function ForumPage() {
     const router = useRouter();
+    const { isAuthenticated } = useAuthStore();
     const [categories, setCategories] = useState<ForumCategory[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -32,21 +34,37 @@ export default function ForumPage() {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-            {/* Main Container - Centered */}
-            <div className="w-full max-w-6xl mx-auto">
-                {/* Header Section - Centered */}
-                <div className="flex flex-col items-center justify-center mb-12 gap-4">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white text-center">
-                        Community Forum
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-center max-w-2xl">
-                        Join discussions, share knowledge, and connect with other learners and teachers
-                    </p>
-                    <Button className="mt-4" onClick={() => router.push('/community/forum/new')}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Start New Discussion
-                    </Button>
+        <div className="min-h-screen bg-background">
+            {/* Main Container */}
+            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="py-12 md:py-16 space-y-8">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500/10">
+                                <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                                Community Forum
+                            </h1>
+                        </div>
+                        <p className="text-base text-muted-foreground max-w-2xl">
+                            Join discussions, share knowledge, and connect with other learners and teachers in our vibrant community.
+                        </p>
+                    </div>
+                    
+                    {/* CTA Button - Only show once */}
+                    {isAuthenticated && (
+                        <div>
+                            <Button 
+                                onClick={() => router.push('/community/forum/new')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Start New Discussion
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Categories Grid */}

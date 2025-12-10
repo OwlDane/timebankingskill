@@ -19,17 +19,22 @@ export const communityService = {
     // ===== FORUM ENDPOINTS =====
 
     /**
-     * Get all forum categories
+     * Get all forum categories (accessible without authentication)
      */
     async getCategories(): Promise<ForumCategory[]> {
         try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            
             const response = await axios.get<ApiResponse<ForumCategory[]>>(
-                `${API_BASE}/forum/categories`
+                `${API_BASE}/forum/categories`,
+                { headers }
             );
             return response.data.data || [];
         } catch (error) {
             console.error('Failed to fetch categories:', error);
-            throw error;
+            // Return empty array instead of throwing to allow view-only access
+            return [];
         }
     },
 
@@ -196,22 +201,27 @@ export const communityService = {
     },
 
     /**
-     * Get published stories
+     * Get published stories (accessible without authentication)
      */
     async getPublishedStories(
         limit: number = 10,
         offset: number = 0
     ): Promise<{ stories: SuccessStory[]; total: number }> {
         try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            
             const response = await axios.get<
                 ApiResponse<{ stories: SuccessStory[]; total: number }>
             >(`${API_BASE}/stories/published`, {
                 params: { limit, offset },
+                headers,
             });
             return response.data.data || { stories: [], total: 0 };
         } catch (error) {
             console.error('Failed to fetch stories:', error);
-            throw error;
+            // Return empty array instead of throwing to allow view-only access
+            return { stories: [], total: 0 };
         }
     },
 
@@ -382,7 +392,7 @@ export const communityService = {
     },
 
     /**
-     * Get endorsements for a user
+     * Get endorsements for a user (accessible without authentication)
      */
     async getUserEndorsements(
         userId: number,
@@ -390,15 +400,20 @@ export const communityService = {
         offset: number = 0
     ): Promise<{ endorsements: Endorsement[]; total: number }> {
         try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            
             const response = await axios.get<
                 ApiResponse<{ endorsements: Endorsement[]; total: number }>
             >(`${API_BASE}/endorsements/user/${userId}`, {
                 params: { limit, offset },
+                headers,
             });
             return response.data.data || { endorsements: [], total: 0 };
         } catch (error) {
             console.error('Failed to fetch endorsements:', error);
-            throw error;
+            // Return empty array instead of throwing to allow view-only access
+            return { endorsements: [], total: 0 };
         }
     },
 
@@ -454,18 +469,22 @@ export const communityService = {
     },
 
     /**
-     * Get top endorsed skills
+     * Get top endorsed skills (accessible without authentication)
      */
     async getTopEndorsedSkills(limit: number = 10): Promise<any[]> {
         try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            
             const response = await axios.get<ApiResponse<any[]>>(
                 `${API_BASE}/endorsements/top-skills`,
-                { params: { limit } }
+                { params: { limit }, headers }
             );
             return response.data.data || [];
         } catch (error) {
             console.error('Failed to fetch top endorsed skills:', error);
-            throw error;
+            // Return empty array instead of throwing to allow view-only access
+            return [];
         }
     },
 };

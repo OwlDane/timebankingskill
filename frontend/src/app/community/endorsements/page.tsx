@@ -1,15 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Award } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, Award, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EndorsementCard } from '@/components/community';
 import { communityService } from '@/lib/services/community.service';
 import { useCommunityStore } from '@/stores/community.store';
+import { useAuthStore } from '@/stores/auth.store';
 import type { Endorsement } from '@/types';
 import { toast } from 'sonner';
 
 export default function EndorsementsPage() {
+    const router = useRouter();
+    const { isAuthenticated } = useAuthStore();
     const { endorsements, setEndorsements, loading, setLoading, error, setError } = useCommunityStore();
     const [topSkills, setTopSkills] = useState<any[]>([]);
     const [offset, setOffset] = useState(0);
@@ -17,9 +21,13 @@ export default function EndorsementsPage() {
     const limit = 10;
 
     useEffect(() => {
-        fetchEndorsements();
+        // Only fetch endorsements if authenticated
+        if (isAuthenticated) {
+            fetchEndorsements();
+        }
+        // Always fetch top skills (public data)
         fetchTopSkills();
-    }, [offset]);
+    }, [offset, isAuthenticated]);
 
     const fetchEndorsements = async () => {
         try {
@@ -58,16 +66,23 @@ export default function EndorsementsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-            <div className="w-full max-w-6xl mx-auto">
+        <div className="min-h-screen bg-background">
+            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex flex-col items-center justify-center mb-12 gap-4">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white text-center">
-                        Skill Endorsements
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-center max-w-2xl">
-                        Get recognized for your skills by your peers
-                    </p>
+                <div className="py-12 md:py-16 space-y-8">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-amber-500/10">
+                                <Award className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                                Skill Endorsements
+                            </h1>
+                        </div>
+                        <p className="text-base text-muted-foreground max-w-2xl">
+                            Get recognized for your skills by your peers. Build your professional reputation in our community.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Top Endorsed Skills */}
@@ -93,21 +108,44 @@ export default function EndorsementsPage() {
                 )}
 
                 {/* Endorsements List */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                {!isAuthenticated ? (
+                    <div className="flex flex-col items-center justify-center py-20 px-4">
+                        <div className="h-16 w-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+                            <Award className="h-8 w-8 text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-foreground mb-2">Login to View Endorsements</h3>
+                        <p className="text-muted-foreground text-center max-w-md mb-6">
+                            Sign in to see your endorsements and get recognized for your skills by the community.
+                        </p>
+                        <Button 
+                            onClick={() => router.push('/login')}
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                            <LogIn className="mr-2 h-4 w-4" />
+                            Login Now
+                        </Button>
+                    </div>
+                ) : loading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <Loader2 className="h-10 w-10 animate-spin text-amber-600 mb-4" />
+                        <p className="text-muted-foreground">Loading endorsements...</p>
                     </div>
                 ) : endorsements.length === 0 ? (
-                    <div className="text-center py-12">
-                        <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-4">No endorsements yet</p>
+                    <div className="flex flex-col items-center justify-center py-20 px-4">
+                        <div className="h-16 w-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+                            <Award className="h-8 w-8 text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-foreground mb-2">No Endorsements Yet</h3>
+                        <p className="text-muted-foreground text-center max-w-md mb-6">
+                            Start building your professional reputation by adding skills and getting endorsed by peers.
+                        </p>
                         <Button variant="outline" onClick={fetchEndorsements}>
                             Refresh
                         </Button>
                     </div>
                 ) : (
                     <>
-                        <h2 className="text-2xl font-bold mb-6">Your Endorsements ({total})</h2>
+                        <h2 className="text-2xl font-bold mb-6 mt-8">Your Endorsements ({total})</h2>
                         <div className="space-y-4 mb-8">
                             {endorsements.map((endorsement) => (
                                 <div key={endorsement.id} className="relative">
@@ -122,15 +160,15 @@ export default function EndorsementsPage() {
 
                         {/* Pagination */}
                         {total > limit && (
-                            <div className="flex items-center justify-center gap-4">
+                            <div className="flex items-center justify-center gap-4 py-8 border-t border-border">
                                 <Button
                                     variant="outline"
                                     disabled={offset === 0}
                                     onClick={() => setOffset(Math.max(0, offset - limit))}
                                 >
-                                    Previous
+                                    ← Previous
                                 </Button>
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-sm text-muted-foreground px-4">
                                     {offset + 1} - {Math.min(offset + limit, total)} of {total}
                                 </span>
                                 <Button
@@ -138,7 +176,7 @@ export default function EndorsementsPage() {
                                     disabled={offset + limit >= total}
                                     onClick={() => setOffset(offset + limit)}
                                 >
-                                    Next
+                                    Next →
                                 </Button>
                             </div>
                         )}
