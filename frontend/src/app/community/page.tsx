@@ -1,11 +1,44 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { MessageSquare, BookOpen, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import gsap from 'gsap';
 
 export default function CommunityPage() {
     const router = useRouter();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const orbs = useRef<HTMLDivElement[]>([]);
+
+    // Animate background orbs
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        // Create floating animation for orbs
+        orbs.current.forEach((orb, index) => {
+            const duration = 15 + index * 5;
+            const delay = index * 0.5;
+            
+            gsap.to(orb, {
+                y: -30,
+                duration: duration,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut',
+                delay: delay,
+            });
+
+            gsap.to(orb, {
+                x: Math.sin(index) * 50,
+                duration: duration * 1.5,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut',
+                delay: delay,
+            });
+        });
+    }, []);
 
     const sections = [
         {
@@ -32,9 +65,39 @@ export default function CommunityPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
+        <div 
+            ref={containerRef}
+            className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 relative overflow-hidden"
+        >
+            {/* Animated Background Orbs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Orb 1 - Blue */}
+                <div
+                    ref={(el) => {
+                        if (el) orbs.current[0] = el;
+                    }}
+                    className="absolute w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -top-32 -left-32"
+                />
+                
+                {/* Orb 2 - Purple */}
+                <div
+                    ref={(el) => {
+                        if (el) orbs.current[1] = el;
+                    }}
+                    className="absolute w-96 h-96 bg-purple-500/20 rounded-full blur-3xl top-1/3 -right-32"
+                />
+                
+                {/* Orb 3 - Amber */}
+                <div
+                    ref={(el) => {
+                        if (el) orbs.current[2] = el;
+                    }}
+                    className="absolute w-96 h-96 bg-amber-500/20 rounded-full blur-3xl -bottom-32 left-1/3"
+                />
+            </div>
+
             {/* Main Container - Centered */}
-            <div className="w-full max-w-6xl mx-auto">
+            <div className="w-full max-w-6xl mx-auto relative z-10">
                 {/* Header Section - Centered */}
                 <div className="flex flex-col items-center justify-center mb-16 gap-4">
                     <h1 className="text-5xl font-bold text-gray-900 dark:text-white text-center">
