@@ -50,7 +50,7 @@ func (s *AdminService) Register(req dto.AdminRegisterRequest) (*dto.AdminLoginRe
 	}
 
 	// Generate token
-	token, err := utils.GenerateToken(admin.ID, admin.Email, "admin")
+	token, err := utils.GenerateToken(admin.ID, admin.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -90,7 +90,7 @@ func (s *AdminService) Login(req dto.AdminLoginRequest) (*dto.AdminLoginResponse
 	s.adminRepo.UpdateLastLogin(admin.ID)
 
 	// Generate token
-	token, err := utils.GenerateToken(admin.ID, admin.Email, "admin")
+	token, err := utils.GenerateToken(admin.ID, admin.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
