@@ -69,7 +69,7 @@ function StatCard({
                                 trend === 'down' ? 'text-red-200' : 'text-white/70'
                             }`}>
                                 {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : 
-                                 trend === 'down' ? <TrendingDown className="h-3 w-3" /> : null}
+                                trend === 'down' ? <TrendingDown className="h-3 w-3" /> : null}
                                 {trendValue}
                             </div>
                         )}
