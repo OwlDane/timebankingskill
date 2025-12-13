@@ -27,73 +27,14 @@ import {
     FileText,
     Settings,
     LogOut,
-    Lock,
     CheckSquare,
     Trash2,
     Edit,
     MoreHorizontal,
-    Menu
+    Menu,
+    User
 } from 'lucide-react'
 import type { PlatformAnalytics, SessionStatistic, CreditStatistic, SkillStatistic } from '@/types'
-
-// --- Components ---
-
-// 1. Security Overlay
-function AdminSecurityCheck({ onVerified }: { onVerified: () => void }) {
-    const [pin, setPin] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-
-    const handleVerify = (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsLoading(true)
-        // Simulate verification delay
-        setTimeout(() => {
-            if (pin === '123456') { // Mock PIN
-                onVerified()
-                toast.success('Admin access granted')
-            } else {
-                toast.error('Invalid Admin PIN')
-            }
-            setIsLoading(false)
-        }, 1000)
-    }
-
-    return (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-2xl border-primary/20">
-                <CardHeader className="text-center space-y-2">
-                    <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit">
-                        <Lock className="h-8 w-8 text-primary" />
-                    </div>
-                    <CardTitle className="text-2xl">Admin Access Required</CardTitle>
-                    <CardDescription>
-                        This area is restricted to administrators only.
-                        <br />Please enter your security PIN.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleVerify} className="space-y-4">
-                        <div className="space-y-2">
-                            <Input
-                                type="password"
-                                placeholder="Enter 6-digit PIN (Try 123456)"
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value)}
-                                maxLength={6}
-                                className="text-center text-2xl tracking-widest"
-                                autoFocus
-                            />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading || pin.length < 6}>
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
-                            Verify Identity
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
 
 // 2. Stat Card
 function StatCard({ 
@@ -373,7 +314,7 @@ function ContentManagement() {
 
 function AdminContent() {
     const router = useRouter()
-    const [isVerified, setIsVerified] = useState(false)
+    const { admin, logout } = useAdminStore()
     const [activeTab, setActiveTab] = useState('overview')
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
     const [platformData, setPlatformData] = useState<PlatformAnalytics | null>(null)
@@ -393,8 +334,10 @@ function AdminContent() {
         loadData()
     }, [])
 
-    if (!isVerified) {
-        return <AdminSecurityCheck onVerified={() => setIsVerified(true)} />
+    const handleLogout = async () => {
+        await logout()
+        toast.success('Logged out successfully')
+        router.push('/admin/login')
     }
 
     const navItems = [
@@ -440,13 +383,14 @@ function AdminContent() {
                 </nav>
 
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                    <button 
-                        onClick={() => router.push('/dashboard')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors ${!isSidebarOpen && 'justify-center'}`}
+                    <Button 
+                        onClick={handleLogout}
+                        variant="ghost"
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors ${!isSidebarOpen && 'justify-center'}`}
                     >
                         <LogOut className="h-5 w-5 shrink-0" />
-                        {isSidebarOpen && <span>Exit Admin</span>}
-                    </button>
+                        {isSidebarOpen && <span>Logout</span>}
+                    </Button>
                 </div>
             </aside>
 
@@ -465,8 +409,14 @@ function AdminContent() {
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             System Operational
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                            A
+                        <div className="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-700">
+                            <div className="text-right">
+                                <p className="text-sm font-medium">{admin?.full_name || 'Admin'}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{admin?.role || 'admin'}</p>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                {admin?.full_name?.charAt(0) || 'A'}
+                            </div>
                         </div>
                     </div>
                 </header>

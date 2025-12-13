@@ -7,6 +7,7 @@ import (
 
   "github.com/timebankingskill/backend/internal/config"
   "github.com/timebankingskill/backend/internal/models"
+  "golang.org/x/crypto/bcrypt"
   "gorm.io/driver/postgres"
   "gorm.io/gorm"
   "gorm.io/gorm/logger"
@@ -80,7 +81,7 @@ func AutoMigrate() error {
   return nil
 }
 
-// SeedInitialData seeds initial data (skills, badges, etc.)
+// SeedInitialData seeds initial data (skills, badges, admins, etc.)
 func SeedInitialData() error {
   if DB == nil {
     return fmt.Errorf("database not connected")
@@ -94,6 +95,11 @@ func SeedInitialData() error {
   }
 
   log.Println("🌱 Seeding initial data...")
+
+  // Seed admin
+  if err := seedAdmin(); err != nil {
+    log.Printf("⚠️  Warning: Failed to seed admin: %v", err)
+  }
 
   // Seed skills
   if err := seedSkills(); err != nil {
@@ -231,6 +237,43 @@ func seedBadges() error {
       }
     }
   }
+
+  return nil
+}
+
+// seedAdmin creates initial admin user
+func seedAdmin() error {
+  // Check if admin already exists
+  var existingAdmin models.Admin
+  result := DB.Where("email = ?", "admin@wibi.com").First(&existingAdmin)
+  if result.Error == nil {
+    log.Println("✅ Admin user already exists, skipping admin seed")
+    return nil
+  }
+
+  // Hash password
+  hashedPassword, err := bcrypt.GenerateFromPassword([]byte("Admin123"), bcrypt.DefaultCost)
+  if err != nil {
+    return fmt.Errorf("failed to hash admin password: %w", err)
+  }
+
+  // Create admin user
+  admin := models.Admin{
+    Email:    "admin@wibi.com",
+    Password: string(hashedPassword),
+    FullName: "Administrator",
+    Role:     "super_admin",
+    IsActive: true,
+  }
+
+  if err := DB.Create(&admin).Error; err != nil {
+    return fmt.Errorf("failed to create admin user: %w", err)
+  }
+
+  log.Println("✅ Admin user created successfully")
+  log.Println("   Email: admin@wibi.com")
+  log.Println("   Password: Admin123")
+  log.Println("   Role: super_admin")
 
   return nil
 }
