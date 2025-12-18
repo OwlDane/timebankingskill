@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAdminStore } from '@/stores/admin.store';
 
 interface AdminProtectedRouteProps {
@@ -10,15 +10,29 @@ interface AdminProtectedRouteProps {
 
 export function AdminProtectedRoute({ children }: AdminProtectedRouteProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const { isAuthenticated, isHydrated } = useAdminStore();
 
+    // Check if we're on the login page
+    const isLoginPage = pathname === '/admin/login';
+
     useEffect(() => {
+        // Skip protection if we're on the login page
+        if (isLoginPage) {
+            return;
+        }
+
         // Only redirect after hydration is complete
         if (isHydrated && !isAuthenticated) {
             console.log('🔐 Admin not authenticated, redirecting to admin login');
             router.push('/admin/login');
         }
-    }, [isAuthenticated, isHydrated, router]);
+    }, [isAuthenticated, isHydrated, isLoginPage, router]);
+
+    // If we're on the login page, always render it (no protection)
+    if (isLoginPage) {
+        return <>{children}</>;
+    }
 
     // Show loading while hydrating or checking auth
     if (!isHydrated || !isAuthenticated) {
