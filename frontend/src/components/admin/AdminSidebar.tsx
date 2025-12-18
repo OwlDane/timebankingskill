@@ -1,29 +1,27 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-    LayoutDashboard,
-    Users,
-    BookOpen,
-    GraduationCap,
-    CreditCard,
-    Trophy,
-    MessageSquare,
-    BarChart3,
-    Settings,
-    ChevronLeft,
-    ChevronRight,
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  GraduationCap,
+  CreditCard,
+  Trophy,
+  MessageSquare,
+  BarChart3,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavItem {
-    title: string;
-    href: string;
-    icon: React.ElementType;
-    badge?: number;
+  title: string;
+  href: string;
+  icon: React.ElementType;
 }
 
 const navItems: NavItem[] = [
@@ -135,15 +133,10 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                                 isCollapsed && 'justify-center'
                             )}
-                            title={isCollapsed ? item.title : undefined}
+                            {...(isCollapsed && { title: item.title })}
                         >
                             <IconComponent className="h-5 w-5 shrink-0" />
                             {!isCollapsed && <span className="flex-1">{item.title}</span>}
-                            {!isCollapsed && item.badge && (
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
-                                    {item.badge}
-                                </span>
-                            )}
                         </Link>
                     );
                 })}
