@@ -81,7 +81,11 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
     const pathname = usePathname();
 
     const isItemActive = (href: string) => {
-        // Check if current path starts with the nav item path
+        // Exact match for dashboard
+        if (href === '/admin') {
+            return pathname === '/admin';
+        }
+        // For other pages, check if path starts with the href
         return pathname === href || pathname.startsWith(href + '/');
     };
 
