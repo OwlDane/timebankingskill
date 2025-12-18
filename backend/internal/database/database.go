@@ -87,31 +87,24 @@ func SeedInitialData() error {
     return fmt.Errorf("database not connected")
   }
 
-  // Check if skills already seeded using raw SQL (faster than Count)
-  var skillCount int
-  if err := DB.Raw("SELECT COUNT(*) FROM skills WHERE deleted_at IS NULL").Scan(&skillCount).Error; err == nil && skillCount > 0 {
-    log.Println("✅ Initial data already seeded, skipping seed")
-    return nil
-  }
-
   log.Println("🌱 Seeding initial data...")
 
-  // Seed admin
+  // Seed admin (always check, independent of other data)
   if err := seedAdmin(); err != nil {
     log.Printf("⚠️  Warning: Failed to seed admin: %v", err)
   }
 
-  // Seed skills
+  // Seed skills (has its own duplicate check)
   if err := seedSkills(); err != nil {
-    return err
+    log.Printf("⚠️  Warning: Failed to seed skills: %v", err)
   }
 
-  // Seed badges
+  // Seed badges (has its own duplicate check)
   if err := seedBadges(); err != nil {
-    return err
+    log.Printf("⚠️  Warning: Failed to seed badges: %v", err)
   }
 
-  log.Println("✅ Initial data seeded successfully")
+  log.Println("✅ Initial data seeding completed")
   return nil
 }
 

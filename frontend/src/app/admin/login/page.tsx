@@ -120,13 +120,6 @@ export default function AdminLoginPage() {
                                     </>
                                 )}
                             </Button>
-
-                            {/* Demo Credentials */}
-                            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                                <p className="text-sm text-blue-300 font-medium mb-2">Demo Credentials:</p>
-                                <p className="text-xs text-blue-200">Email: admin@wibi.com</p>
-                                <p className="text-xs text-blue-200">Password: Admin123456</p>
-                            </div>
                         </form>
                     </CardContent>
                 </Card>
