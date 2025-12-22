@@ -11,9 +11,10 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
 import { useSessionStore } from "@/stores/session.store";
 import { useBadgeStore } from "@/stores/badge.store";
+import { useSkillStore } from "@/stores/skill.store";
 import SessionApprovalModal from "@/components/session/SessionApprovalModal";
 import TransactionDetailModal from "@/components/transaction/TransactionDetailModal";
-import type { Transaction, Session } from "@/types";
+import type { Transaction, Session, Skill } from "@/types";
 
 // Format date
 function formatDate(dateString: string) {
@@ -49,6 +50,7 @@ function DashboardContent() {
     const { stats, transactions, isLoading, fetchStats, fetchTransactions } = useUserStore();
     const { upcomingSessions, pendingRequests, fetchUpcomingSessions, fetchPendingRequests } = useSessionStore();
     const { userBadges, fetchUserBadges } = useBadgeStore();
+    const { skills, fetchSkills } = useSkillStore();
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -60,7 +62,8 @@ function DashboardContent() {
         fetchUpcomingSessions(3).catch(console.error);
         fetchPendingRequests().catch(console.error);
         fetchUserBadges().catch(console.error);
-    }, [fetchStats, fetchTransactions, fetchUpcomingSessions, fetchPendingRequests, fetchUserBadges]);
+        fetchSkills({ limit: 4 }).catch(console.error);
+    }, [fetchStats, fetchTransactions, fetchUpcomingSessions, fetchPendingRequests, fetchUserBadges, fetchSkills]);
 
     const handleOpenApprovalModal = (session: Session) => {
         setSelectedSession(session);
@@ -265,7 +268,44 @@ function DashboardContent() {
                         )}
                     </div>
 
-                    {/* Transaction History */}
+                    {/* Recommended Skills */}
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold">Recommended for You</h2>
+                            <Link href="/marketplace">
+                                <Button variant="ghost" size="sm">View All</Button>
+                            </Link>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {skills.slice(0, 4).map((skill: Skill) => (
+                                <Card key={skill.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                                    <div className="h-32 bg-muted flex items-center justify-center text-4xl">
+                                        {skill.icon || '📚'}
+                                    </div>
+                                    <CardHeader className="p-4 pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <CardTitle className="text-base line-clamp-1">{skill.name}</CardTitle>
+                                            <Badge variant="secondary" className="text-xs">{skill.category}</Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-0">
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                            {skill.description || 'No description available'}
+                                        </p>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <span>{skill.total_teachers || 0} Tutors</span>
+                                            <span>{skill.total_learners || 0} Learners</span>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="p-4 pt-0">
+                                        <Link href={`/marketplace/${skill.id}`} className="w-full">
+                                            <Button variant="outline" size="sm" className="w-full">View Details</Button>
+                                        </Link>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-2xl font-bold">Transaction History</h2>
