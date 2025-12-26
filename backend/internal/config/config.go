@@ -107,8 +107,13 @@ func Load() (*Config, error) {
 	if config.Database.Password == "" {
 		return nil, fmt.Errorf("DB_PASSWORD is required")
 	}
-	if config.JWT.Secret == "your-secret-key" {
-		fmt.Println("WARNING: Using default JWT secret. Please set JWT_SECRET in production!")
+	
+	// Enforce JWT_SECRET validation - must be set and not default
+	if config.JWT.Secret == "" {
+		return nil, fmt.Errorf("JWT_SECRET is required")
+	}
+	if config.JWT.Secret == "your-secret-key" || len(config.JWT.Secret) < 32 {
+		return nil, fmt.Errorf("JWT_SECRET must be at least 32 characters long and not use default value")
 	}
 
 	return config, nil

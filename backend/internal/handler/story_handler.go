@@ -85,15 +85,11 @@ func (h *StoryHandler) GetPublishedStories(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Stories fetched successfully",
-		"data": gin.H{
-			"stories": stories,
-			"total":   total,
-			"limit":   limit,
-			"offset":  offset,
-		},
+	utils.SendSuccess(c, http.StatusOK, "Stories fetched successfully", gin.H{
+		"stories": stories,
+		"total":   total,
+		"limit":   limit,
+		"offset":  offset,
 	})
 }
 
@@ -126,15 +122,11 @@ func (h *StoryHandler) GetUserStories(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Stories fetched successfully",
-		"data": gin.H{
-			"stories": stories,
-			"total":   total,
-			"limit":   limit,
-			"offset":  offset,
-		},
+	utils.SendSuccess(c, http.StatusOK, "Stories fetched successfully", gin.H{
+		"stories": stories,
+		"total":   total,
+		"limit":   limit,
+		"offset":  offset,
 	})
 }
 
@@ -243,15 +235,11 @@ func (h *StoryHandler) GetComments(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Comments fetched successfully",
-		"data": gin.H{
-			"comments": comments,
-			"total":    total,
-			"limit":    limit,
-			"offset":   offset,
-		},
+	utils.SendSuccess(c, http.StatusOK, "Comments fetched successfully", gin.H{
+		"comments": comments,
+		"total":    total,
+		"limit":    limit,
+		"offset":   offset,
 	})
 }
 

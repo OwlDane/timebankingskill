@@ -3,6 +3,8 @@
 import React, { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ErrorState } from '@/components/ui/error-state'
+import { LoadingSkeleton } from '@/components/ui/loading'
 import {
     TrendingUp,
     Coins,
@@ -29,11 +31,11 @@ export default function UserStats() {
                 {Array.from({ length: 8 }).map((_, index) => (
                     <Card key={index} className="animate-pulse">
                         <CardHeader className="pb-2">
-                            <div className="h-4 bg-muted rounded w-3/4"></div>
+                            <LoadingSkeleton className="h-4 w-3/4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="h-8 bg-muted rounded mb-2"></div>
-                            <div className="h-3 bg-muted rounded w-1/2"></div>
+                            <LoadingSkeleton className="h-8 w-full mb-2" />
+                            <LoadingSkeleton className="h-3 w-1/2" />
                         </CardContent>
                     </Card>
                 ))}
@@ -43,13 +45,12 @@ export default function UserStats() {
 
     if (error || !stats) {
         return (
-            <Card>
-                <CardContent className="text-center py-8">
-                    <p className="text-muted-foreground">
-                        {error || 'Failed to load user statistics'}
-                    </p>
-                </CardContent>
-            </Card>
+            <ErrorState
+                title="Failed to load statistics"
+                message={error || 'Failed to load user statistics'}
+                onRetry={() => fetchStats()}
+                variant="default"
+            />
         )
     }
 

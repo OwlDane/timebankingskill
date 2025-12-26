@@ -13,12 +13,16 @@ import {
     ExternalLink,
     Globe,
     Home,
-    Zap
+    Zap,
+    BookOpen
 } from 'lucide-react'
 import { useSkillStore } from '@/stores'
 import { toast } from 'sonner'
 import AddSkillForm from './AddSkillForm'
 import type { UserSkill } from '@/types'
+import { LoadingSkeleton } from '../ui/loading'
+import { ErrorState } from '../ui/error-state'
+import { EmptyState } from '../ui/empty-state'
 
 interface UserSkillListProps {
     title?: string
@@ -80,7 +84,7 @@ export default function UserSkillList({
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <LoadingSkeleton className="h-8 w-8" />
                     </div>
                 </CardContent>
             </Card>
@@ -94,16 +98,37 @@ export default function UserSkillList({
                     <CardTitle>{title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-center py-8">
-                        <p className="text-muted-foreground">{error}</p>
-                        <Button
-                            variant="outline"
-                            className="mt-4"
-                            onClick={() => fetchUserSkills()}
-                        >
-                            Coba Lagi
-                        </Button>
-                    </div>
+                    <ErrorState
+                        message={error}
+                        onRetry={fetchUserSkills}
+                        variant="compact"
+                    />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    if (userSkills.length === 0) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <EmptyState
+                        icon={<BookOpen className="h-4 w-4" />}
+                        title="No skills added yet"
+                        description="Add skills you can teach to start earning credits!"
+                        action={showAddButton ? {
+                            label: 'Add Skill',
+                            onClick: () => {
+                                // Trigger add skill form
+                                const addButton = document.querySelector('[data-add-skill]') as HTMLElement;
+                                addButton?.click();
+                            },
+                        } : undefined}
+                        variant="compact"
+                    />
                 </CardContent>
             </Card>
         )
@@ -117,16 +142,7 @@ export default function UserSkillList({
                     {showAddButton && <AddSkillForm />}
                 </CardHeader>
                 <CardContent>
-                    {userSkills.length === 0 ? (
-                        <div className="text-center py-8">
-                            <div className="text-4xl mb-4">📚</div>
-                            <h3 className="text-lg font-semibold mb-2">Belum Ada Skill</h3>
-                            <p className="text-muted-foreground mb-4">
-                                Tambahkan skill yang bisa Anda ajarkan untuk mulai berbagi pengetahuan.
-                            </p>
-                            {showAddButton && <AddSkillForm />}
-                        </div>
-                    ) : (
+                    {userSkills.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {userSkills.map((userSkill) => (
                                 <Card key={userSkill.id} className="relative">

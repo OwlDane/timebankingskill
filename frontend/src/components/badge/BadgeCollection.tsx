@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { BadgeCard } from './BadgeCard';
+import { ErrorState } from '@/components/ui/error-state';
 import { useBadgeStore } from '@/stores';
 import type { BadgeType } from '@/types';
 
@@ -119,10 +120,11 @@ export function BadgeCollection({
         <div className="space-y-4">
             {/* Error Alert */}
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-                </div>
+                <ErrorState
+                    message={error}
+                    onRetry={handleCheckBadges}
+                    variant="compact"
+                />
             )}
 
             {/* Header */}

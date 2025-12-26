@@ -66,7 +66,6 @@ export function useNotificationWebSocket() {
             wsRef.current = new WebSocket(wsUrl);
 
             wsRef.current.onopen = () => {
-                console.log('✅ WebSocket connected');
                 setConnected(true);
                 reconnectAttemptsRef.current = 0;
             };
@@ -86,27 +85,16 @@ export function useNotificationWebSocket() {
             };
 
             wsRef.current.onerror = () => {
-                // Only log error if not intentional disconnect (e.g., page navigation)
-                if (!isIntentionalDisconnectRef.current) {
-                    console.warn('⚠️ WebSocket connection issue');
-                }
                 setConnected(false);
             };
 
             wsRef.current.onclose = () => {
-                // Only log if not intentional disconnect
-                if (!isIntentionalDisconnectRef.current) {
-                    console.log('⚠️ WebSocket disconnected');
-                }
                 setConnected(false);
                 wsRef.current = null;
 
                 // Only attempt to reconnect if not intentional disconnect
                 if (!isIntentionalDisconnectRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
                     const delay = getReconnectDelay();
-                    console.log(
-                        `🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`
-                    );
 
                     reconnectTimeoutRef.current = setTimeout(() => {
                         reconnectAttemptsRef.current += 1;
