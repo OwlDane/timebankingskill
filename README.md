@@ -225,15 +225,6 @@ http://localhost:8080/api/v1
 - `GET /leaderboard/badges` - Badge leaderboard
 - `GET /leaderboard/rating` - Rating leaderboard
 
-## 🎯 Development Phases
-
-- ✅ **Phase 1**: Authentication & User Profile
-- ✅ **Phase 2**: Skill Management
-- ✅ **Phase 3**: Session Management
-- ✅ **Phase 4**: Credit System
-- ✅ **Phase 5**: Review & Rating System
-- ✅ **Phase 6**: Gamification (Badges & Leaderboard)
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
