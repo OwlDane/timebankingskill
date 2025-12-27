@@ -80,7 +80,7 @@ function BookSessionContent() {
             id: userSkillId,
             user_id: 0,
             skill_id: 0,
-            skill: { id: 0, name: 'Loading...', category: 'academic', description: '', icon: '', total_teachers: 0, total_learners: 0, created_at: '' },
+            skill: { id: 0, name: 'Loading...', category: 'academic', description: '', icon: '', total_teachers: 0, total_learners: 0, created_at: '', min_rate: 0, max_rate: 0 },
             level: 'intermediate',
             description: '',
             years_of_experience: 0,
